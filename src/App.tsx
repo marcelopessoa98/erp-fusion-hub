@@ -14,19 +14,16 @@ import Filiais from "./pages/cadastros/Filiais";
 import Clientes from "./pages/cadastros/Clientes";
 import Obras from "./pages/cadastros/Obras";
 import Funcionarios from "./pages/cadastros/Funcionarios";
+import Materiais from "./pages/estoque/Materiais";
+import Movimentacoes from "./pages/estoque/Movimentacoes";
+import Alugueis from "./pages/estoque/Alugueis";
+import Lancamentos from "./pages/horas-extras/Lancamentos";
+import Relatorios from "./pages/horas-extras/Relatorios";
+import Ocorrencias from "./pages/nao-conformidades/Ocorrencias";
+import Ranking from "./pages/nao-conformidades/Ranking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
-// Placeholder pages for modules that will be implemented next
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold mb-2">{title}</h2>
-      <p className="text-muted-foreground">Módulo em desenvolvimento</p>
-    </div>
-  </div>
-);
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -97,13 +94,13 @@ const AppRoutes = () => {
         }
       />
       
-      {/* Estoque - Placeholders */}
+      {/* Estoque */}
       <Route
         path="/estoque/materiais"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Materiais" />
+              <Materiais />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -113,7 +110,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Movimentações" />
+              <Movimentacoes />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -123,19 +120,19 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Aluguéis" />
+              <Alugueis />
             </AppLayout>
           </ProtectedRoute>
         }
       />
       
-      {/* Horas Extras - Placeholders */}
+      {/* Horas Extras */}
       <Route
         path="/horas-extras/lancamentos"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Lançamentos de Horas Extras" />
+              <Lancamentos />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -145,19 +142,19 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Relatórios de Horas Extras" />
+              <Relatorios />
             </AppLayout>
           </ProtectedRoute>
         }
       />
       
-      {/* Não Conformidades - Placeholders */}
+      {/* Não Conformidades */}
       <Route
         path="/nao-conformidades/ocorrencias"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Ocorrências" />
+              <Ocorrencias />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -167,7 +164,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <PlaceholderPage title="Ranking de Funcionários" />
+              <Ranking />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -179,7 +176,10 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requiredRole="admin">
             <AppLayout>
-              <PlaceholderPage title="Configurações" />
+              <div className="text-center py-8">
+                <h2 className="text-2xl font-bold mb-2">Configurações</h2>
+                <p className="text-muted-foreground">Módulo em desenvolvimento</p>
+              </div>
             </AppLayout>
           </ProtectedRoute>
         }
