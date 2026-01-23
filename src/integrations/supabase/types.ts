@@ -84,6 +84,64 @@ export type Database = {
           },
         ]
       }
+      avaliacoes_funcionarios: {
+        Row: {
+          created_at: string
+          data_avaliacao: string
+          descricao: string
+          filial_id: string
+          funcionario_id: string
+          id: string
+          obra_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_avaliacao?: string
+          descricao: string
+          filial_id: string
+          funcionario_id: string
+          id?: string
+          obra_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_avaliacao?: string
+          descricao?: string
+          filial_id?: string
+          funcionario_id?: string
+          id?: string
+          obra_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_funcionarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_funcionarios_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_funcionarios_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias_material: {
         Row: {
           created_at: string
@@ -594,6 +652,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      ranking_funcionario_mes: {
+        Row: {
+          ano: number
+          created_at: string
+          filial_id: string
+          funcionario_id: string
+          id: string
+          mes: number
+          pontuacao: number
+          posicao: number
+          total_avaliacoes: number
+          total_ncs: number
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          filial_id: string
+          funcionario_id: string
+          id?: string
+          mes: number
+          pontuacao?: number
+          posicao?: number
+          total_avaliacoes?: number
+          total_ncs?: number
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          filial_id?: string
+          funcionario_id?: string
+          id?: string
+          mes?: number
+          pontuacao?: number
+          posicao?: number
+          total_avaliacoes?: number
+          total_ncs?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_funcionario_mes_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_funcionario_mes_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_filiais: {
         Row: {

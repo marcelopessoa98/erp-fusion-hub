@@ -21,6 +21,9 @@ import Lancamentos from "./pages/horas-extras/Lancamentos";
 import Relatorios from "./pages/horas-extras/Relatorios";
 import Ocorrencias from "./pages/nao-conformidades/Ocorrencias";
 import Ranking from "./pages/nao-conformidades/Ranking";
+import Avaliacoes from "./pages/nao-conformidades/Avaliacoes";
+import NCsFuncionarios from "./pages/nao-conformidades/NCsFuncionarios";
+import NCsClientes from "./pages/nao-conformidades/NCsClientes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
