@@ -24,6 +24,7 @@ import Ranking from "./pages/nao-conformidades/Ranking";
 import Avaliacoes from "./pages/nao-conformidades/Avaliacoes";
 import NCsFuncionarios from "./pages/nao-conformidades/NCsFuncionarios";
 import NCsClientes from "./pages/nao-conformidades/NCsClientes";
+import TiposNC from "./pages/nao-conformidades/TiposNC";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -158,6 +159,46 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <Ocorrencias />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nao-conformidades/funcionarios"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <NCsFuncionarios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nao-conformidades/clientes"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <NCsClientes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nao-conformidades/avaliacoes"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Avaliacoes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nao-conformidades/tipos"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <TiposNC />
             </AppLayout>
           </ProtectedRoute>
         }

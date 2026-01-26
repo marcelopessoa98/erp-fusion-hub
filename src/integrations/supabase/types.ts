@@ -277,6 +277,7 @@ export type Database = {
           cargo: string | null
           created_at: string
           data_admissao: string | null
+          data_nascimento: string | null
           documento: string | null
           email: string | null
           filial_id: string | null
@@ -290,6 +291,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_nascimento?: string | null
           documento?: string | null
           email?: string | null
           filial_id?: string | null
@@ -303,6 +305,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_nascimento?: string | null
           documento?: string | null
           email?: string | null
           filial_id?: string | null
@@ -499,6 +502,7 @@ export type Database = {
           resolvido_por: string | null
           status: Database["public"]["Enums"]["nc_status"]
           tipo: Database["public"]["Enums"]["nc_tipo"]
+          tipo_nc_id: string | null
           titulo: string
           updated_at: string
           user_id: string | null
@@ -518,6 +522,7 @@ export type Database = {
           resolvido_por?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tipo: Database["public"]["Enums"]["nc_tipo"]
+          tipo_nc_id?: string | null
           titulo: string
           updated_at?: string
           user_id?: string | null
@@ -537,6 +542,7 @@ export type Database = {
           resolvido_por?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tipo?: Database["public"]["Enums"]["nc_tipo"]
+          tipo_nc_id?: string | null
           titulo?: string
           updated_at?: string
           user_id?: string | null
@@ -568,6 +574,13 @@ export type Database = {
             columns: ["obra_id"]
             isOneToOne: false
             referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nao_conformidades_tipo_nc_id_fkey"
+            columns: ["tipo_nc_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_nc"
             referencedColumns: ["id"]
           },
         ]
@@ -706,6 +719,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tipos_nc: {
+        Row: {
+          ativo: boolean
+          categoria: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_filiais: {
         Row: {
