@@ -86,6 +86,7 @@ const NCsClientes = () => {
     cliente_id: "",
     filial_id: "",
     obra_id: "",
+    tipo_nc_id: "",
     data_ocorrencia: new Date().toISOString().split("T")[0],
   });
 
@@ -150,6 +151,21 @@ const NCsClientes = () => {
     enabled: !!formData.filial_id,
   });
 
+  // Fetch tipos de NC para clientes
+  const { data: tiposNC = [] } = useQuery({
+    queryKey: ["tipos-nc-cliente"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tipos_nc")
+        .select("id, nome")
+        .eq("categoria", "cliente")
+        .eq("ativo", true)
+        .order("nome");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch NCs de clientes
   const { data: ncs = [], isLoading } = useQuery({
     queryKey: ["ncs-clientes", filterFilial, filterStatus],
@@ -193,6 +209,7 @@ const NCsClientes = () => {
         cliente_id: data.cliente_id,
         filial_id: data.filial_id,
         obra_id: data.obra_id || null,
+        tipo_nc_id: data.tipo_nc_id || null,
         data_ocorrencia: data.data_ocorrencia,
         user_id: user?.id,
       });
@@ -243,6 +260,7 @@ const NCsClientes = () => {
       cliente_id: "",
       filial_id: "",
       obra_id: "",
+      tipo_nc_id: "",
       data_ocorrencia: new Date().toISOString().split("T")[0],
     });
   };
@@ -394,6 +412,27 @@ const NCsClientes = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipo de NC</Label>
+                <Select
+                  value={formData.tipo_nc_id}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, tipo_nc_id: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiposNC.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

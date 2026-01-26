@@ -28,6 +28,10 @@ import {
   LogOut,
   Settings,
   ChevronDown,
+  ThumbsUp,
+  Tags,
+  UserX,
+  Building,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,7 +60,10 @@ const horasExtrasItems = [
 ];
 
 const ncItems = [
-  { title: 'Ocorrências', url: '/nao-conformidades/ocorrencias', icon: AlertTriangle },
+  { title: 'NCs Funcionários', url: '/nao-conformidades/funcionarios', icon: UserX },
+  { title: 'NCs Clientes', url: '/nao-conformidades/clientes', icon: Building },
+  { title: 'Avaliações', url: '/nao-conformidades/avaliacoes', icon: ThumbsUp },
+  { title: 'Tipos de NC', url: '/nao-conformidades/tipos', icon: Tags },
   { title: 'Ranking', url: '/nao-conformidades/ranking', icon: Trophy },
 ];
 

@@ -41,7 +41,7 @@ interface Filial {
 interface Funcionario {
   id: string;
   nome: string;
-  documento: string | null;
+  data_nascimento: string | null;
   cargo: string | null;
   telefone: string | null;
   email: string | null;
@@ -64,7 +64,7 @@ const Funcionarios = () => {
 
   // Form state
   const [nome, setNome] = useState('');
-  const [documento, setDocumento] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
   const [cargo, setCargo] = useState('');
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
@@ -100,7 +100,7 @@ const Funcionarios = () => {
 
   const resetForm = () => {
     setNome('');
-    setDocumento('');
+    setDataNascimento('');
     setCargo('');
     setTelefone('');
     setEmail('');
@@ -112,7 +112,7 @@ const Funcionarios = () => {
   const openEditDialog = (funcionario: Funcionario) => {
     setEditingFuncionario(funcionario);
     setNome(funcionario.nome);
-    setDocumento(funcionario.documento || '');
+    setDataNascimento(funcionario.data_nascimento || '');
     setCargo(funcionario.cargo || '');
     setTelefone(funcionario.telefone || '');
     setEmail(funcionario.email || '');
@@ -128,7 +128,7 @@ const Funcionarios = () => {
     try {
       const data = {
         nome,
-        documento: documento || null,
+        data_nascimento: dataNascimento || null,
         cargo: cargo || null,
         telefone: telefone || null,
         email: email || null,
@@ -193,8 +193,7 @@ const Funcionarios = () => {
   const filteredFuncionarios = funcionarios.filter((func) => {
     const matchesSearch =
       func.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      func.cargo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      func.documento?.toLowerCase().includes(searchTerm.toLowerCase());
+      func.cargo?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilial = filterFilial === 'all' || func.filial_id === filterFilial;
 
@@ -248,12 +247,12 @@ const Funcionarios = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="documento">CPF</Label>
+                    <Label htmlFor="dataNascimento">Data de Nascimento</Label>
                     <Input
-                      id="documento"
-                      value={documento}
-                      onChange={(e) => setDocumento(e.target.value)}
-                      placeholder="000.000.000-00"
+                      id="dataNascimento"
+                      type="date"
+                      value={dataNascimento}
+                      onChange={(e) => setDataNascimento(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
