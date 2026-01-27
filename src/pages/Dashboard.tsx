@@ -139,9 +139,13 @@ const Dashboard = () => {
               <Clock className="h-5 w-5 text-muted-foreground" />
               <span>Lançar Horas Extras</span>
             </a>
-            <a href="/nao-conformidades/ocorrencias" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            <a href="/nao-conformidades/funcionarios" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <AlertTriangle className="h-5 w-5 text-muted-foreground" />
-              <span>Registrar Não Conformidade</span>
+              <span>Registrar NC de Funcionário</span>
+            </a>
+            <a href="/nao-conformidades/clientes" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+              <span>Registrar NC de Cliente</span>
             </a>
           </CardContent>
         </Card>
@@ -173,11 +177,11 @@ const Dashboard = () => {
                 <div className="text-sm text-muted-foreground">Lançamentos e Relatórios</div>
               </div>
             </a>
-            <a href="/nao-conformidades/ocorrencias" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            <a href="/nao-conformidades/funcionarios" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               <div>
                 <div className="font-medium">Não Conformidades</div>
-                <div className="text-sm text-muted-foreground">Ocorrências e Ranking</div>
+                <div className="text-sm text-muted-foreground">Funcionários, Clientes e Ranking</div>
               </div>
             </a>
           </CardContent>
