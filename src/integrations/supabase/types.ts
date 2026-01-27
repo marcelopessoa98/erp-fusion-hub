@@ -14,6 +14,112 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamento_responsaveis: {
+        Row: {
+          agendamento_id: string
+          created_at: string
+          funcionario_id: string
+          id: string
+        }
+        Insert: {
+          agendamento_id: string
+          created_at?: string
+          funcionario_id: string
+          id?: string
+        }
+        Update: {
+          agendamento_id?: string
+          created_at?: string
+          funcionario_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_responsaveis_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamento_responsaveis_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agendamentos: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_concretagem: string
+          filial_id: string
+          id: string
+          notificado: boolean
+          obra_id: string
+          observacoes: string | null
+          referencia: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          volume: number
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_concretagem: string
+          filial_id: string
+          id?: string
+          notificado?: boolean
+          obra_id: string
+          observacoes?: string | null
+          referencia?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          volume: number
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_concretagem?: string
+          filial_id?: string
+          id?: string
+          notificado?: boolean
+          obra_id?: string
+          observacoes?: string | null
+          referencia?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          volume?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alugueis: {
         Row: {
           created_at: string

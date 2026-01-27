@@ -33,6 +33,7 @@ import {
   UserX,
   Building,
   UserPlus,
+  CalendarDays,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,6 +68,10 @@ const ncItems = [
   { title: 'Avaliações', url: '/nao-conformidades/avaliacoes', icon: ThumbsUp },
   { title: 'Tipos de NC', url: '/nao-conformidades/tipos', icon: Tags },
   { title: 'Ranking', url: '/nao-conformidades/ranking', icon: Trophy },
+];
+
+const agendamentosItems = [
+  { title: 'Calendário', url: '/agendamentos', icon: CalendarDays },
 ];
 
 export function AppSidebar() {
@@ -201,7 +206,23 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Administração (apenas admin) */}
+        {/* Agendamentos */}
+        <Collapsible defaultOpen={isActiveGroup(agendamentosItems)} className="group/collapsible">
+          <SidebarGroup>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="cursor-pointer hover:bg-accent rounded-md px-3 py-2 flex items-center justify-between">
+                <span className={cn(collapsed && 'sr-only')}>Agendamentos</span>
+                {!collapsed && <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                {renderMenuItems(agendamentosItems)}
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
         {role === 'admin' && (
           <SidebarGroup>
             <SidebarMenu>
