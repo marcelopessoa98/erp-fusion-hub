@@ -25,6 +25,7 @@ import Avaliacoes from "./pages/nao-conformidades/Avaliacoes";
 import NCsFuncionarios from "./pages/nao-conformidades/NCsFuncionarios";
 import NCsClientes from "./pages/nao-conformidades/NCsClientes";
 import TiposNC from "./pages/nao-conformidades/TiposNC";
+import Usuarios from "./pages/admin/Usuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -214,7 +215,17 @@ const AppRoutes = () => {
         }
       />
       
-      {/* Configurações */}
+      {/* Administração */}
+      <Route
+        path="/admin/usuarios"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AppLayout>
+              <Usuarios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/configuracoes"
         element={

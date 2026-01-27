@@ -32,6 +32,7 @@ import {
   Tags,
   UserX,
   Building,
+  UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +41,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import logo from '@/assets/logo.png';
 
 const cadastrosItems = [
   { title: 'Filiais', url: '/cadastros/filiais', icon: Building2 },
@@ -99,16 +101,15 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-            <Building2 className="w-4 h-4 text-primary-foreground" />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-lg leading-none">ERP</span>
-              <span className="text-xs text-muted-foreground">Sistema Integrado</span>
-            </div>
-          )}
+        <div className="flex items-center justify-center">
+          <img 
+            src={logo} 
+            alt="Concrefuji" 
+            className={cn(
+              "transition-all duration-200",
+              collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto max-w-[180px]"
+            )}
+          />
         </div>
       </SidebarHeader>
 
@@ -200,10 +201,22 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Configurações (apenas admin) */}
+        {/* Administração (apenas admin) */}
         {role === 'admin' && (
           <SidebarGroup>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/admin/usuarios"
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                    activeClassName="bg-accent text-accent-foreground font-medium"
+                  >
+                    <UserPlus className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Usuários</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
