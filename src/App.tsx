@@ -25,6 +25,7 @@ import Avaliacoes from "./pages/nao-conformidades/Avaliacoes";
 import NCsFuncionarios from "./pages/nao-conformidades/NCsFuncionarios";
 import NCsClientes from "./pages/nao-conformidades/NCsClientes";
 import TiposNC from "./pages/nao-conformidades/TiposNC";
+import Agendamentos from "./pages/agendamentos/Agendamentos";
 import Usuarios from "./pages/admin/Usuarios";
 import NotFound from "./pages/NotFound";
 
@@ -210,6 +211,18 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <Ranking />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+        />
+      
+      {/* Agendamentos */}
+      <Route
+        path="/agendamentos"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Agendamentos />
             </AppLayout>
           </ProtectedRoute>
         }
