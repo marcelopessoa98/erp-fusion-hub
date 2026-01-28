@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Search, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Plus, Search, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Pencil, List } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -45,6 +45,11 @@ interface Funcionario {
   cargo: string | null;
 }
 
+interface Obra {
+  id: string;
+  nome: string;
+}
+
 interface HoraExtra {
   id: string;
   data: string;
@@ -55,30 +60,44 @@ interface HoraExtra {
   created_at: string;
   funcionario_id: string;
   filial_id: string;
+  obra_id?: string | null;
   funcionarios?: Funcionario;
   filiais?: Filial;
+  obras?: Obra;
+}
+
+interface LancamentoItem {
+  id: string;
+  obra_id: string;
+  data: string;
+  horas: number;
+  tipo: string;
+  observacao: string;
 }
 
 const Lancamentos = () => {
-  const { user, isGerente } = useAuth();
+  const { user, role } = useAuth();
+  const isAdmin = role === 'admin';
+  const isGerente = role === 'gerente' || isAdmin;
+  
   const [lancamentos, setLancamentos] = useState<HoraExtra[]>([]);
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [filiais, setFiliais] = useState<Filial[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAprovado, setFilterAprovado] = useState<string>('todos');
   const [filterFilial, setFilterFilial] = useState<string>('todos');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [gerenciamentoOpen, setGerenciamentoOpen] = useState(false);
+  const [editingLancamento, setEditingLancamento] = useState<HoraExtra | null>(null);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    funcionario_id: '',
-    filial_id: '',
-    data: format(new Date(), 'yyyy-MM-dd'),
-    horas: 1,
-    tipo: 'normal',
-    observacao: '',
-  });
+  // Multi-form state
+  const [selectedFilial, setSelectedFilial] = useState('');
+  const [selectedFuncionario, setSelectedFuncionario] = useState('');
+  const [lancamentoItems, setLancamentoItems] = useState<LancamentoItem[]>([
+    { id: '1', obra_id: '', data: format(new Date(), 'yyyy-MM-dd'), horas: 1, tipo: 'normal', observacao: '' },
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -87,7 +106,7 @@ const Lancamentos = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [lancRes, funcRes, filRes] = await Promise.all([
+      const [lancRes, funcRes, filRes, obrasRes] = await Promise.all([
         supabase
           .from('horas_extras')
           .select('*, funcionarios(id, nome, cargo), filiais(id, nome)')
@@ -95,15 +114,18 @@ const Lancamentos = () => {
           .limit(100),
         supabase.from('funcionarios').select('id, nome, cargo').eq('ativo', true).order('nome'),
         supabase.from('filiais').select('id, nome').eq('ativa', true).order('nome'),
+        supabase.from('obras').select('id, nome').eq('status', 'ativa').order('nome'),
       ]);
 
       if (lancRes.error) throw lancRes.error;
       if (funcRes.error) throw funcRes.error;
       if (filRes.error) throw filRes.error;
+      if (obrasRes.error) throw obrasRes.error;
 
-      setLancamentos(lancRes.data || []);
+      setLancamentos((lancRes.data || []) as any);
       setFuncionarios(funcRes.data || []);
       setFiliais(filRes.data || []);
+      setObras(obrasRes.data || []);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error('Erro ao carregar dados: ' + message);
@@ -113,42 +135,139 @@ const Lancamentos = () => {
   };
 
   const resetForm = () => {
-    setFormData({
-      funcionario_id: '',
-      filial_id: '',
-      data: format(new Date(), 'yyyy-MM-dd'),
-      horas: 1,
-      tipo: 'normal',
-      observacao: '',
-    });
+    setSelectedFilial('');
+    setSelectedFuncionario('');
+    setLancamentoItems([
+      { id: '1', obra_id: '', data: format(new Date(), 'yyyy-MM-dd'), horas: 1, tipo: 'normal', observacao: '' },
+    ]);
+    setEditingLancamento(null);
+  };
+
+  const addLancamentoItem = () => {
+    setLancamentoItems([
+      ...lancamentoItems,
+      {
+        id: Date.now().toString(),
+        obra_id: '',
+        data: format(new Date(), 'yyyy-MM-dd'),
+        horas: 1,
+        tipo: 'normal',
+        observacao: '',
+      },
+    ]);
+  };
+
+  const removeLancamentoItem = (id: string) => {
+    if (lancamentoItems.length > 1) {
+      setLancamentoItems(lancamentoItems.filter((item) => item.id !== id));
+    }
+  };
+
+  const updateLancamentoItem = (id: string, field: keyof LancamentoItem, value: string | number) => {
+    setLancamentoItems(
+      lancamentoItems.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!selectedFilial || !selectedFuncionario) {
+      toast.error('Selecione a filial e o funcionário');
+      return;
+    }
+
     try {
-      const { error } = await supabase.from('horas_extras').insert([
-        {
-          funcionario_id: formData.funcionario_id,
-          filial_id: formData.filial_id,
-          data: formData.data,
-          horas: formData.horas,
-          tipo: formData.tipo,
-          observacao: formData.observacao || null,
-          aprovado: false,
-          user_id: user?.id,
-        },
-      ]);
+      const inserts = lancamentoItems.map((item) => ({
+        funcionario_id: selectedFuncionario,
+        filial_id: selectedFilial,
+        obra_id: item.obra_id || null,
+        data: item.data,
+        horas: item.horas,
+        tipo: item.tipo,
+        observacao: item.observacao || null,
+        aprovado: false,
+        user_id: user?.id,
+      }));
+
+      const { error } = await supabase.from('horas_extras').insert(inserts);
 
       if (error) throw error;
 
-      toast.success('Horas extras lançadas com sucesso!');
+      toast.success(`${inserts.length} lançamento(s) registrado(s) com sucesso!`);
       setDialogOpen(false);
       resetForm();
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error('Erro ao lançar horas extras: ' + message);
+    }
+  };
+
+  const handleEdit = async (lanc: HoraExtra) => {
+    setEditingLancamento(lanc);
+    setSelectedFilial(lanc.filial_id);
+    setSelectedFuncionario(lanc.funcionario_id);
+    setLancamentoItems([
+      {
+        id: lanc.id,
+        obra_id: lanc.obra_id || '',
+        data: lanc.data,
+        horas: lanc.horas,
+        tipo: lanc.tipo,
+        observacao: lanc.observacao || '',
+      },
+    ]);
+    setGerenciamentoOpen(false);
+    setDialogOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingLancamento) return;
+
+    const item = lancamentoItems[0];
+
+    try {
+      const { error } = await supabase
+        .from('horas_extras')
+        .update({
+          funcionario_id: selectedFuncionario,
+          filial_id: selectedFilial,
+          obra_id: item.obra_id || null,
+          data: item.data,
+          horas: item.horas,
+          tipo: item.tipo,
+          observacao: item.observacao || null,
+        })
+        .eq('id', editingLancamento.id);
+
+      if (error) throw error;
+
+      toast.success('Lançamento atualizado com sucesso!');
+      setDialogOpen(false);
+      resetForm();
+      fetchData();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao atualizar lançamento: ' + message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este lançamento?')) return;
+
+    try {
+      const { error } = await supabase.from('horas_extras').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Lançamento excluído com sucesso!');
+      fetchData();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao excluir lançamento: ' + message);
     }
   };
 
@@ -232,133 +351,268 @@ const Lancamentos = () => {
     .filter((l) => l.aprovado === false)
     .reduce((sum, l) => sum + Number(l.horas), 0);
 
+  const filteredObras = selectedFilial
+    ? obras.filter((o) => {
+        // Se a obra não tem filial_id ou corresponde à filial selecionada
+        return true; // Mostrar todas por enquanto, já que obras pode não ter filial_id no select
+      })
+    : [];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Lançamentos de Horas Extras</h1>
           <p className="text-muted-foreground">Registre e acompanhe horas extras dos funcionários</p>
         </div>
-        <Dialog
-          open={dialogOpen}
-          onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) resetForm();
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Lançamento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Lançar Horas Extras</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="filial">Filial *</Label>
-                <Select
-                  value={formData.filial_id}
-                  onValueChange={(value) => setFormData({ ...formData, filial_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a filial" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filiais.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setGerenciamentoOpen(true)}>
+            <List className="mr-2 h-4 w-4" />
+            Gerenciar Lançamentos
+          </Button>
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) resetForm();
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Lançamento
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingLancamento ? 'Editar Lançamento' : 'Lançar Horas Extras'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={editingLancamento ? handleUpdate : handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="filial">Filial *</Label>
+                    <Select value={selectedFilial} onValueChange={setSelectedFilial}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a filial" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filiais.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="funcionario">Funcionário *</Label>
-                <Select
-                  value={formData.funcionario_id}
-                  onValueChange={(value) => setFormData({ ...formData, funcionario_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o funcionário" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {funcionarios.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.nome} {f.cargo && `(${f.cargo})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="data">Data *</Label>
-                  <Input
-                    id="data"
-                    type="date"
-                    value={formData.data}
-                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                    required
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="funcionario">Funcionário *</Label>
+                    <Select value={selectedFuncionario} onValueChange={setSelectedFuncionario}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o funcionário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {funcionarios.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.nome} {f.cargo && `(${f.cargo})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="horas">Horas *</Label>
-                  <Input
-                    id="horas"
-                    type="number"
-                    min="0.5"
-                    step="0.5"
-                    max="24"
-                    value={formData.horas}
-                    onChange={(e) =>
-                      setFormData({ ...formData, horas: parseFloat(e.target.value) || 1 })
-                    }
-                    required
-                  />
+
+                <div className="space-y-4 max-h-[400px] overflow-y-auto border rounded-lg p-4">
+                  {lancamentoItems.map((item, index) => (
+                    <div key={item.id} className="p-4 border rounded-lg bg-muted/30 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">Lançamento {index + 1}</span>
+                        {lancamentoItems.length > 1 && !editingLancamento && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeLancamentoItem(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="space-y-2">
+                          <Label>Obra</Label>
+                          <Select
+                            value={item.obra_id}
+                            onValueChange={(value) => updateLancamentoItem(item.id, 'obra_id', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a obra" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {obras.map((o) => (
+                                <SelectItem key={o.id} value={o.id}>
+                                  {o.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Data *</Label>
+                          <Input
+                            type="date"
+                            value={item.data}
+                            onChange={(e) => updateLancamentoItem(item.id, 'data', e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Horas *</Label>
+                          <Input
+                            type="number"
+                            min="0.5"
+                            step="0.5"
+                            max="24"
+                            value={item.horas}
+                            onChange={(e) =>
+                              updateLancamentoItem(item.id, 'horas', parseFloat(e.target.value) || 1)
+                            }
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Tipo *</Label>
+                          <Select
+                            value={item.tipo}
+                            onValueChange={(value) => updateLancamentoItem(item.id, 'tipo', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="normal">Normal (50%)</SelectItem>
+                              <SelectItem value="noturno">Noturno</SelectItem>
+                              <SelectItem value="feriado">Feriado/Domingo (100%)</SelectItem>
+                              <SelectItem value="sobreaviso">Sobreaviso</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Observação</Label>
+                        <Textarea
+                          value={item.observacao}
+                          onChange={(e) => updateLancamentoItem(item.id, 'observacao', e.target.value)}
+                          placeholder="Motivo ou justificativa..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo *</Label>
-                <Select
-                  value={formData.tipo}
-                  onValueChange={(value) => setFormData({ ...formData, tipo: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="normal">Normal (50%)</SelectItem>
-                    <SelectItem value="noturno">Noturno</SelectItem>
-                    <SelectItem value="feriado">Feriado/Domingo (100%)</SelectItem>
-                    <SelectItem value="sobreaviso">Sobreaviso</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                {!editingLancamento && (
+                  <Button type="button" variant="outline" onClick={addLancamentoItem} className="w-full">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar Outro Lançamento
+                  </Button>
+                )}
 
-              <div className="space-y-2">
-                <Label htmlFor="observacao">Observação</Label>
-                <Textarea
-                  id="observacao"
-                  value={formData.observacao}
-                  onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
-                  placeholder="Motivo ou justificativa..."
-                  rows={2}
+                <Button type="submit" className="w-full">
+                  {editingLancamento ? 'Atualizar Lançamento' : `Registrar ${lancamentoItems.length} Lançamento(s)`}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Gerenciamento Dialog */}
+      <Dialog open={gerenciamentoOpen} onOpenChange={setGerenciamentoOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Lançamentos</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar funcionário..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
-
-              <Button type="submit" className="w-full">
-                Registrar Lançamento
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <Select value={filterFilial} onValueChange={setFilterFilial}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filial" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas as filiais</SelectItem>
+                  {filiais.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Funcionário</TableHead>
+                    <TableHead>Obra</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Horas</TableHead>
+                    <TableHead>Status</TableHead>
+                    {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLancamentos.slice(0, 50).map((lanc) => (
+                    <TableRow key={lanc.id}>
+                      <TableCell>
+                        {format(new Date(lanc.data), 'dd/MM/yyyy', { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="font-medium">{lanc.funcionarios?.nome}</TableCell>
+                      <TableCell>{lanc.obras?.nome || '-'}</TableCell>
+                      <TableCell>{getTipoBadge(lanc.tipo)}</TableCell>
+                      <TableCell className="text-right font-medium">{lanc.horas}h</TableCell>
+                      <TableCell>{getStatusBadge(lanc.aprovado)}</TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(lanc)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(lanc.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Cards de resumo do mês */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -454,6 +708,7 @@ const Lancamentos = () => {
                   <TableHead>Data</TableHead>
                   <TableHead>Funcionário</TableHead>
                   <TableHead>Filial</TableHead>
+                  <TableHead>Obra</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Horas</TableHead>
                   <TableHead>Status</TableHead>
@@ -475,6 +730,7 @@ const Lancamentos = () => {
                       )}
                     </TableCell>
                     <TableCell>{lanc.filiais?.nome}</TableCell>
+                    <TableCell>{lanc.obras?.nome || '-'}</TableCell>
                     <TableCell>{getTipoBadge(lanc.tipo)}</TableCell>
                     <TableCell className="text-right font-medium">{lanc.horas}h</TableCell>
                     <TableCell>{getStatusBadge(lanc.aprovado)}</TableCell>
