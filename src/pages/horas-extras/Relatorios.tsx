@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -21,8 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Download, FileText, Clock, Users, Building2 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { Download, FileText, Clock, Users, Building2, TrendingUp } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, subMonths, getDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   BarChart,
@@ -35,6 +36,9 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
+  Legend,
 } from 'recharts';
 
 interface Filial {
@@ -45,11 +49,30 @@ interface Filial {
 interface Funcionario {
   id: string;
   nome: string;
+  cargo: string | null;
+}
+
+interface Obra {
+  id: string;
+  nome: string;
+}
+
+interface HoraExtraDetalhada {
+  id: string;
+  data: string;
+  horas: number;
+  tipo: string;
+  observacao: string | null;
+  funcionario_nome: string;
+  funcionario_cargo: string | null;
+  filial_nome: string;
+  obra_nome: string | null;
 }
 
 interface HoraExtraAgrupada {
   funcionario_id: string;
   funcionario_nome: string;
+  funcionario_cargo: string | null;
   filial_nome: string;
   total_horas: number;
   total_normal: number;
@@ -58,20 +81,43 @@ interface HoraExtraAgrupada {
   total_sobreaviso: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
 const Relatorios = () => {
   const [filiais, setFiliais] = useState<Filial[]>([]);
+  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filtros gerais
   const [filterFilial, setFilterFilial] = useState<string>('todos');
   const [filterMes, setFilterMes] = useState<string>(format(new Date(), 'yyyy-MM'));
+
+  // Filtros por funcionário
+  const [funcDataInicio, setFuncDataInicio] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [funcDataFim, setFuncDataFim] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [funcFilial, setFuncFilial] = useState<string>('');
+  const [funcFuncionario, setFuncFuncionario] = useState<string>('');
+  const [relatorioFuncionario, setRelatorioFuncionario] = useState<HoraExtraDetalhada[]>([]);
+
+  // Filtros por obra
+  const [obraDataInicio, setObraDataInicio] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [obraDataFim, setObraDataFim] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [obraFilial, setObraFilial] = useState<string>('');
+  const [obraObra, setObraObra] = useState<string>('');
+  const [relatorioObra, setRelatorioObra] = useState<HoraExtraDetalhada[]>([]);
 
   const [resumo, setResumo] = useState<HoraExtraAgrupada[]>([]);
   const [totaisPorTipo, setTotaisPorTipo] = useState<{ name: string; value: number }[]>([]);
   const [totaisPorFilial, setTotaisPorFilial] = useState<{ name: string; horas: number }[]>([]);
+  const [topFuncionariosPorFilial, setTopFuncionariosPorFilial] = useState<Record<string, { nome: string; horas: number }[]>>({});
+  const [topObrasPorFilial, setTopObrasPorFilial] = useState<Record<string, { nome: string; horas: number }[]>>({});
 
   useEffect(() => {
     fetchFiliais();
+    fetchFuncionarios();
+    fetchObras();
   }, []);
 
   useEffect(() => {
@@ -87,6 +133,24 @@ const Relatorios = () => {
     if (!error) setFiliais(data || []);
   };
 
+  const fetchFuncionarios = async () => {
+    const { data, error } = await supabase
+      .from('funcionarios')
+      .select('id, nome, cargo')
+      .eq('ativo', true)
+      .order('nome');
+    if (!error) setFuncionarios(data || []);
+  };
+
+  const fetchObras = async () => {
+    const { data, error } = await supabase
+      .from('obras')
+      .select('id, nome')
+      .eq('status', 'ativa')
+      .order('nome');
+    if (!error) setObras(data || []);
+  };
+
   const fetchRelatorio = async () => {
     setLoading(true);
     try {
@@ -96,7 +160,7 @@ const Relatorios = () => {
 
       let query = supabase
         .from('horas_extras')
-        .select('*, funcionarios(id, nome), filiais(id, nome)')
+        .select('*, funcionarios(id, nome, cargo), filiais(id, nome), obras(id, nome)')
         .gte('data', format(dataInicio, 'yyyy-MM-dd'))
         .lte('data', format(dataFim, 'yyyy-MM-dd'))
         .eq('aprovado', true);
@@ -116,6 +180,7 @@ const Relatorios = () => {
           agrupado[key] = {
             funcionario_id: h.funcionario_id,
             funcionario_nome: h.funcionarios?.nome || 'N/A',
+            funcionario_cargo: h.funcionarios?.cargo,
             filial_nome: h.filiais?.nome || 'N/A',
             total_horas: 0,
             total_normal: 0,
@@ -157,6 +222,41 @@ const Relatorios = () => {
       setTotaisPorFilial(
         Object.entries(filiaisMap).map(([name, horas]) => ({ name, horas }))
       );
+
+      // Top funcionários por filial
+      const funcPorFilial: Record<string, Record<string, number>> = {};
+      data?.forEach((h: any) => {
+        const filialNome = h.filiais?.nome || 'Sem filial';
+        const funcNome = h.funcionarios?.nome || 'N/A';
+        if (!funcPorFilial[filialNome]) funcPorFilial[filialNome] = {};
+        funcPorFilial[filialNome][funcNome] = (funcPorFilial[filialNome][funcNome] || 0) + Number(h.horas);
+      });
+      const topFunc: Record<string, { nome: string; horas: number }[]> = {};
+      Object.entries(funcPorFilial).forEach(([filial, funcs]) => {
+        topFunc[filial] = Object.entries(funcs)
+          .map(([nome, horas]) => ({ nome, horas }))
+          .sort((a, b) => b.horas - a.horas)
+          .slice(0, 5);
+      });
+      setTopFuncionariosPorFilial(topFunc);
+
+      // Top obras por filial
+      const obrasPorFilial: Record<string, Record<string, number>> = {};
+      data?.forEach((h: any) => {
+        if (!h.obras?.nome) return;
+        const filialNome = h.filiais?.nome || 'Sem filial';
+        const obraNome = h.obras?.nome;
+        if (!obrasPorFilial[filialNome]) obrasPorFilial[filialNome] = {};
+        obrasPorFilial[filialNome][obraNome] = (obrasPorFilial[filialNome][obraNome] || 0) + Number(h.horas);
+      });
+      const topObras: Record<string, { nome: string; horas: number }[]> = {};
+      Object.entries(obrasPorFilial).forEach(([filial, obrasData]) => {
+        topObras[filial] = Object.entries(obrasData)
+          .map(([nome, horas]) => ({ nome, horas }))
+          .sort((a, b) => b.horas - a.horas)
+          .slice(0, 5);
+      });
+      setTopObrasPorFilial(topObras);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error('Erro ao carregar relatório: ' + message);
@@ -165,31 +265,146 @@ const Relatorios = () => {
     }
   };
 
-  const exportarCSV = () => {
-    if (resumo.length === 0) {
+  const buscarRelatorioFuncionario = async () => {
+    if (!funcFilial || !funcFuncionario) {
+      toast.error('Selecione a filial e o funcionário');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('horas_extras')
+        .select('*, funcionarios(nome, cargo), filiais(nome), obras(nome)')
+        .eq('filial_id', funcFilial)
+        .eq('funcionario_id', funcFuncionario)
+        .gte('data', funcDataInicio)
+        .lte('data', funcDataFim)
+        .order('data', { ascending: true });
+
+      if (error) throw error;
+
+      const detalhado = (data || []).map((h: any) => ({
+        id: h.id,
+        data: h.data,
+        horas: h.horas,
+        tipo: h.tipo,
+        observacao: h.observacao,
+        funcionario_nome: h.funcionarios?.nome || '',
+        funcionario_cargo: h.funcionarios?.cargo,
+        filial_nome: h.filiais?.nome || '',
+        obra_nome: h.obras?.nome,
+      }));
+
+      setRelatorioFuncionario(detalhado);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao buscar relatório: ' + message);
+    }
+  };
+
+  const buscarRelatorioObra = async () => {
+    if (!obraFilial || !obraObra) {
+      toast.error('Selecione a filial e a obra');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('horas_extras')
+        .select('*, funcionarios(nome, cargo), filiais(nome), obras(nome)')
+        .eq('filial_id', obraFilial)
+        .eq('obra_id', obraObra)
+        .gte('data', obraDataInicio)
+        .lte('data', obraDataFim)
+        .order('data', { ascending: true });
+
+      if (error) throw error;
+
+      const detalhado = (data || []).map((h: any) => ({
+        id: h.id,
+        data: h.data,
+        horas: h.horas,
+        tipo: h.tipo,
+        observacao: h.observacao,
+        funcionario_nome: h.funcionarios?.nome || '',
+        funcionario_cargo: h.funcionarios?.cargo,
+        filial_nome: h.filiais?.nome || '',
+        obra_nome: h.obras?.nome,
+      }));
+
+      setRelatorioObra(detalhado);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao buscar relatório: ' + message);
+    }
+  };
+
+  const exportarRelatorioFuncionario = async (formato: 'pdf' | 'docx') => {
+    if (relatorioFuncionario.length === 0) {
       toast.error('Nenhum dado para exportar');
       return;
     }
 
-    const headers = ['Funcionário', 'Filial', 'Normal', 'Noturno', 'Feriado', 'Sobreaviso', 'Total'];
-    const rows = resumo.map((r) => [
-      r.funcionario_nome,
-      r.filial_nome,
-      r.total_normal,
-      r.total_noturno,
-      r.total_feriado,
-      r.total_sobreaviso,
-      r.total_horas,
-    ]);
+    const func = funcionarios.find((f) => f.id === funcFuncionario);
+    const filial = filiais.find((f) => f.id === funcFilial);
+    const totalHoras = relatorioFuncionario.reduce((s, r) => s + Number(r.horas), 0);
 
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const content = `
+RELATÓRIO DE HORAS EXTRAS - POR FUNCIONÁRIO
+
+Filial: ${filial?.nome || ''}
+Funcionário: ${func?.nome || ''} - ${func?.cargo || 'Sem cargo'}
+Período: ${format(parseISO(funcDataInicio), 'dd/MM/yyyy')} a ${format(parseISO(funcDataFim), 'dd/MM/yyyy')}
+
+${relatorioFuncionario.map((r) => {
+  const dia = diasSemana[getDay(parseISO(r.data))];
+  return `${dia} - ${format(parseISO(r.data), 'dd/MM/yyyy')} - ${r.horas}h - ${r.obra_nome || 'Sem obra'} - ${r.observacao || ''}`;
+}).join('\n')}
+
+TOTAL GERAL: ${totalHoras}h
+    `.trim();
+
+    // Criar blob e download
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `horas-extras-${filterMes}.csv`;
+    link.download = `relatorio-funcionario-${func?.nome?.replace(/\s/g, '_')}-${format(new Date(), 'yyyyMMdd')}.txt`;
     link.click();
 
-    toast.success('Relatório exportado com sucesso!');
+    toast.success('Relatório exportado! (Versão texto - para PDF/Word, use um conversor)');
+  };
+
+  const exportarRelatorioObra = async (formato: 'pdf' | 'docx') => {
+    if (relatorioObra.length === 0) {
+      toast.error('Nenhum dado para exportar');
+      return;
+    }
+
+    const obra = obras.find((o) => o.id === obraObra);
+    const filial = filiais.find((f) => f.id === obraFilial);
+    const totalHoras = relatorioObra.reduce((s, r) => s + Number(r.horas), 0);
+
+    const content = `
+RELATÓRIO DE HORAS EXTRAS - POR OBRA
+
+Filial: ${filial?.nome || ''}
+Obra: ${obra?.nome || ''}
+Período: ${format(parseISO(obraDataInicio), 'dd/MM/yyyy')} a ${format(parseISO(obraDataFim), 'dd/MM/yyyy')}
+
+${relatorioObra.map((r) => {
+  return `${format(parseISO(r.data), 'dd/MM/yyyy')} - ${r.horas}h - ${r.funcionario_nome} - ${r.observacao || ''}`;
+}).join('\n')}
+
+TOTAL GERAL: ${totalHoras}h
+    `.trim();
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `relatorio-obra-${obra?.nome?.replace(/\s/g, '_')}-${format(new Date(), 'yyyyMMdd')}.txt`;
+    link.click();
+
+    toast.success('Relatório exportado! (Versão texto - para PDF/Word, use um conversor)');
   };
 
   const meses = Array.from({ length: 12 }, (_, i) => {
@@ -209,221 +424,438 @@ const Relatorios = () => {
           <h1 className="text-3xl font-bold tracking-tight">Relatórios de Horas Extras</h1>
           <p className="text-muted-foreground">Visualize e exporte dados consolidados</p>
         </div>
-        <Button onClick={exportarCSV} disabled={resumo.length === 0}>
-          <Download className="mr-2 h-4 w-4" />
-          Exportar CSV
-        </Button>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="space-y-2">
-              <Label>Período</Label>
-              <Select value={filterMes} onValueChange={setFilterMes}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {meses.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Filial</Label>
-              <Select value={filterFilial} onValueChange={setFilterFilial}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todas as filiais</SelectItem>
-                  {filiais.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {f.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="funcionario">Por Funcionário</TabsTrigger>
+          <TabsTrigger value="obra">Por Obra</TabsTrigger>
+        </TabsList>
 
-      {/* Cards de resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Total de Horas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalGeral}h</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Funcionários
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{resumo.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Filiais
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totaisPorFilial.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Média por Funcionário
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {resumo.length > 0 ? (totalGeral / resumo.length).toFixed(1) : 0}h
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Gráficos */}
-      {!loading && resumo.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Dashboard */}
+        <TabsContent value="dashboard" className="space-y-6">
+          {/* Filtros */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Horas por Tipo</CardTitle>
+              <CardTitle className="text-base">Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={totaisPorTipo.filter((t) => t.value > 0)}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} (${(percent * 100).toFixed(0)}%)`
-                      }
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {totaisPorTipo.map((_, index) => (
+              <div className="flex flex-wrap gap-4">
+                <div className="space-y-2">
+                  <Label>Período</Label>
+                  <Select value={filterMes} onValueChange={setFilterMes}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {meses.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Filial</Label>
+                  <Select value={filterFilial} onValueChange={setFilterFilial}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todas as filiais</SelectItem>
+                      {filiais.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Cards de resumo */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Total de Horas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalGeral}h</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Funcionários
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{resumo.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Filiais
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totaisPorFilial.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Média por Funcionário
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {resumo.length > 0 ? (totalGeral / resumo.length).toFixed(1) : 0}h
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Gráficos por Filial */}
+          {!loading && Object.keys(topFuncionariosPorFilial).length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.entries(topFuncionariosPorFilial).map(([filial, funcs]) => (
+                <Card key={filial}>
+                  <CardHeader>
+                    <CardTitle className="text-base">Top Funcionários - {filial}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={funcs} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="nome" type="category" width={100} tick={{ fontSize: 12 }} />
+                          <Tooltip />
+                          <Bar dataKey="horas" fill="#8884d8" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Gráficos de Obras por Filial */}
+          {!loading && Object.keys(topObrasPorFilial).length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.entries(topObrasPorFilial).map(([filial, obrasData]) => (
+                <Card key={filial}>
+                  <CardHeader>
+                    <CardTitle className="text-base">Top Obras com Horas Extras - {filial}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={obrasData} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="nome" type="category" width={120} tick={{ fontSize: 12 }} />
+                          <Tooltip />
+                          <Bar dataKey="horas" fill="#00C49F" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Gráficos gerais */}
+          {!loading && resumo.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Horas por Tipo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={totaisPorTipo.filter((t) => t.value > 0)}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) =>
+                            `${name} (${(percent * 100).toFixed(0)}%)`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                      {totaisPorTipo.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
                   </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Horas por Filial</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={totaisPorFilial}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="horas" fill="#8884d8" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Relatório por Funcionário */}
+        <TabsContent value="funcionario" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Horas por Filial</CardTitle>
+              <CardTitle className="text-base">Relatório por Funcionário</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={totaisPorFilial}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="horas" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>Data Início</Label>
+                  <Input
+                    type="date"
+                    value={funcDataInicio}
+                    onChange={(e) => setFuncDataInicio(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data Fim</Label>
+                  <Input
+                    type="date"
+                    value={funcDataFim}
+                    onChange={(e) => setFuncDataFim(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Filial</Label>
+                  <Select value={funcFilial} onValueChange={setFuncFilial}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filiais.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Funcionário</Label>
+                  <Select value={funcFuncionario} onValueChange={setFuncFuncionario}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {funcionarios.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              <Button onClick={buscarRelatorioFuncionario}>Buscar</Button>
             </CardContent>
           </Card>
-        </div>
-      )}
 
-      {/* Tabela detalhada */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Detalhamento por Funcionário</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : resumo.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mb-4" />
-              <p>Nenhum dado para o período selecionado</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Funcionário</TableHead>
-                  <TableHead>Filial</TableHead>
-                  <TableHead className="text-right">Normal</TableHead>
-                  <TableHead className="text-right">Noturno</TableHead>
-                  <TableHead className="text-right">Feriado</TableHead>
-                  <TableHead className="text-right">Sobreaviso</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {resumo.map((r) => (
-                  <TableRow key={r.funcionario_id}>
-                    <TableCell className="font-medium">{r.funcionario_nome}</TableCell>
-                    <TableCell>{r.filial_nome}</TableCell>
-                    <TableCell className="text-right">{r.total_normal}h</TableCell>
-                    <TableCell className="text-right">{r.total_noturno}h</TableCell>
-                    <TableCell className="text-right">{r.total_feriado}h</TableCell>
-                    <TableCell className="text-right">{r.total_sobreaviso}h</TableCell>
-                    <TableCell className="text-right font-bold">{r.total_horas}h</TableCell>
-                  </TableRow>
-                ))}
-                <TableRow className="bg-muted/50">
-                  <TableCell colSpan={2} className="font-bold">
-                    Total Geral
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    {resumo.reduce((s, r) => s + r.total_normal, 0)}h
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    {resumo.reduce((s, r) => s + r.total_noturno, 0)}h
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    {resumo.reduce((s, r) => s + r.total_feriado, 0)}h
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    {resumo.reduce((s, r) => s + r.total_sobreaviso, 0)}h
-                  </TableCell>
-                  <TableCell className="text-right font-bold">{totalGeral}h</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+          {relatorioFuncionario.length > 0 && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Resultado</CardTitle>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => exportarRelatorioFuncionario('pdf')}>
+                    <Download className="h-4 w-4 mr-1" />
+                    PDF/TXT
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => exportarRelatorioFuncionario('docx')}>
+                    <Download className="h-4 w-4 mr-1" />
+                    Word/TXT
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 p-4 bg-muted rounded-lg">
+                  <p><strong>Filial:</strong> {relatorioFuncionario[0]?.filial_nome}</p>
+                  <p><strong>Funcionário:</strong> {relatorioFuncionario[0]?.funcionario_nome} - {relatorioFuncionario[0]?.funcionario_cargo || 'Sem cargo'}</p>
+                  <p><strong>Período:</strong> {format(parseISO(funcDataInicio), 'dd/MM/yyyy')} a {format(parseISO(funcDataFim), 'dd/MM/yyyy')}</p>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Dia da Semana</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Horas</TableHead>
+                      <TableHead>Obra</TableHead>
+                      <TableHead>Observações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {relatorioFuncionario.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell>{diasSemana[getDay(parseISO(r.data))]}</TableCell>
+                        <TableCell>{format(parseISO(r.data), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{r.horas}h</TableCell>
+                        <TableCell>{r.obra_nome || '-'}</TableCell>
+                        <TableCell>{r.observacao || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/50 font-bold">
+                      <TableCell colSpan={2}>TOTAL</TableCell>
+                      <TableCell>{relatorioFuncionario.reduce((s, r) => s + Number(r.horas), 0)}h</TableCell>
+                      <TableCell colSpan={2}></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        {/* Relatório por Obra */}
+        <TabsContent value="obra" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Relatório por Obra</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>Data Início</Label>
+                  <Input
+                    type="date"
+                    value={obraDataInicio}
+                    onChange={(e) => setObraDataInicio(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data Fim</Label>
+                  <Input
+                    type="date"
+                    value={obraDataFim}
+                    onChange={(e) => setObraDataFim(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Filial</Label>
+                  <Select value={obraFilial} onValueChange={setObraFilial}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filiais.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Obra</Label>
+                  <Select value={obraObra} onValueChange={setObraObra}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {obras.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {o.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button onClick={buscarRelatorioObra}>Buscar</Button>
+            </CardContent>
+          </Card>
+
+          {relatorioObra.length > 0 && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Resultado</CardTitle>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => exportarRelatorioObra('pdf')}>
+                    <Download className="h-4 w-4 mr-1" />
+                    PDF/TXT
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => exportarRelatorioObra('docx')}>
+                    <Download className="h-4 w-4 mr-1" />
+                    Word/TXT
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 p-4 bg-muted rounded-lg">
+                  <p><strong>Filial:</strong> {relatorioObra[0]?.filial_nome}</p>
+                  <p><strong>Obra:</strong> {relatorioObra[0]?.obra_nome}</p>
+                  <p><strong>Período:</strong> {format(parseISO(obraDataInicio), 'dd/MM/yyyy')} a {format(parseISO(obraDataFim), 'dd/MM/yyyy')}</p>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Horas</TableHead>
+                      <TableHead>Funcionário</TableHead>
+                      <TableHead>Observações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {relatorioObra.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell>{format(parseISO(r.data), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{r.horas}h</TableCell>
+                        <TableCell>{r.funcionario_nome}</TableCell>
+                        <TableCell>{r.observacao || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/50 font-bold">
+                      <TableCell>TOTAL</TableCell>
+                      <TableCell>{relatorioObra.reduce((s, r) => s + Number(r.horas), 0)}h</TableCell>
+                      <TableCell colSpan={2}></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
