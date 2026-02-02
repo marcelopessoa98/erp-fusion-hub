@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, Users, HardHat, UserCog, Package, AlertTriangle, Clock, TrendingUp } from 'lucide-react';
+import { AniversariantesMes } from '@/components/dashboard/AniversariantesMes';
 
 interface DashboardStats {
   filiais: number;
@@ -124,7 +125,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Acesso Rápido</CardTitle>
@@ -186,6 +187,8 @@ const Dashboard = () => {
             </a>
           </CardContent>
         </Card>
+
+        <AniversariantesMes />
       </div>
     </div>
   );

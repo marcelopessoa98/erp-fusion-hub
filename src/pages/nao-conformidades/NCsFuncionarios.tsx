@@ -270,8 +270,8 @@ const NCsFuncionarios = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.titulo || !formData.descricao || !formData.funcionario_id || !formData.filial_id) {
-      toast.error("Preencha todos os campos obrigatórios");
+    if (!formData.titulo || !formData.descricao || !formData.funcionario_id || !formData.filial_id || !formData.obra_id) {
+      toast.error("Preencha todos os campos obrigatórios (incluindo a Obra)");
       return;
     }
     createMutation.mutate(formData);
@@ -377,7 +377,7 @@ const NCsFuncionarios = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Obra (opcional)</Label>
+                  <Label>Obra *</Label>
                   <Select
                     value={formData.obra_id}
                     onValueChange={(value) =>
@@ -386,7 +386,7 @@ const NCsFuncionarios = () => {
                     disabled={!formData.filial_id}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
+                      <SelectValue placeholder="Selecione a obra" />
                     </SelectTrigger>
                     <SelectContent>
                       {obras.map((o) => (
