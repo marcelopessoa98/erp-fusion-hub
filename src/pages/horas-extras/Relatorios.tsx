@@ -309,9 +309,9 @@ const Relatorios = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from('horas_extras')
-        .select('*, funcionarios(nome, cargo), filiais(nome), obras(nome)')
+        .select('*, funcionarios(nome, cargo), filiais(nome), obras(nome)') as any)
         .eq('filial_id', obraFilial)
         .eq('obra_id', obraObra)
         .gte('data', obraDataInicio)

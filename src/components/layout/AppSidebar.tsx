@@ -34,8 +34,12 @@ import {
   Building,
   UserPlus,
   CalendarDays,
+  DollarSign,
+  Wrench,
+  Construction,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
   CollapsibleContent,
@@ -222,6 +226,40 @@ export function AppSidebar() {
             </CollapsibleContent>
           </SidebarGroup>
         </Collapsible>
+
+        {/* Financeiro - Em Desenvolvimento */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-md opacity-60 cursor-not-allowed">
+                <DollarSign className="h-4 w-4 shrink-0" />
+                {!collapsed && (
+                  <div className="flex items-center gap-2">
+                    <span>Financeiro</span>
+                    <Badge variant="secondary" className="text-xs">Em breve</Badge>
+                  </div>
+                )}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Serviços Extras - Em Desenvolvimento */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-md opacity-60 cursor-not-allowed">
+                <Wrench className="h-4 w-4 shrink-0" />
+                {!collapsed && (
+                  <div className="flex items-center gap-2">
+                    <span>Serviços Extras</span>
+                    <Badge variant="secondary" className="text-xs">Em breve</Badge>
+                  </div>
+                )}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
         {role === 'admin' && (
           <SidebarGroup>
