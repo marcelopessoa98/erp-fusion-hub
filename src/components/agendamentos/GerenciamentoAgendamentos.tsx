@@ -48,8 +48,8 @@ export function GerenciamentoAgendamentos({
 
   const [mes, setMes] = useState<string>(String(currentMonth));
   const [ano, setAno] = useState<string>(String(currentYear));
-  const [filialId, setFilialId] = useState<string>('');
-  const [funcionarioId, setFuncionarioId] = useState<string>('');
+  const [filialId, setFilialId] = useState<string>('all');
+  const [funcionarioId, setFuncionarioId] = useState<string>('all');
 
   // Fetch filiais
   const { data: filiais } = useQuery({
@@ -82,8 +82,8 @@ export function GerenciamentoAgendamentos({
   const { data: agendamentos, isLoading } = useAgendamentos({
     mes: parseInt(mes),
     ano: parseInt(ano),
-    filial_id: filialId || undefined,
-    funcionario_id: funcionarioId || undefined,
+    filial_id: filialId !== 'all' ? filialId : undefined,
+    funcionario_id: funcionarioId !== 'all' ? funcionarioId : undefined,
   });
 
   const getStatusBadgeVariant = (status: string) => {
@@ -121,8 +121,8 @@ export function GerenciamentoAgendamentos({
   const clearFilters = () => {
     setMes(String(currentMonth));
     setAno(String(currentYear));
-    setFilialId('');
-    setFuncionarioId('');
+    setFilialId('all');
+    setFuncionarioId('all');
   };
 
   return (
@@ -184,7 +184,7 @@ export function GerenciamentoAgendamentos({
                     <SelectValue placeholder="Todas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     {filiais?.map(f => (
                       <SelectItem key={f.id} value={f.id}>
                         {f.nome}
@@ -201,7 +201,7 @@ export function GerenciamentoAgendamentos({
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     {funcionarios?.map(f => (
                       <SelectItem key={f.id} value={f.id}>
                         {f.nome}
