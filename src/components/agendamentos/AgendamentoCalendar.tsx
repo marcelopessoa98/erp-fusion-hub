@@ -8,7 +8,7 @@ import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Agendamento } from '@/hooks/useAgendamentos';
-import { Edit, Truck } from 'lucide-react';
+import { Edit, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AgendamentoCalendarProps {
   agendamentos: Agendamento[];
@@ -90,13 +90,20 @@ export function AgendamentoCalendar({
             onSelect={(date) => date && onDateSelect?.(date)}
             month={month}
             onMonthChange={setMonth}
+            locale={ptBR}
             className="w-full pointer-events-auto"
             classNames={{
               months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full',
               month: 'space-y-4 w-full',
+              caption: 'flex justify-center pt-1 relative items-center',
+              caption_label: 'text-sm font-medium capitalize',
+              nav: 'space-x-1 flex items-center',
+              nav_button: 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border rounded-md hover:bg-accent',
+              nav_button_previous: 'absolute left-1',
+              nav_button_next: 'absolute right-1',
               table: 'w-full border-collapse',
               head_row: 'flex w-full',
-              head_cell: 'text-muted-foreground rounded-md w-full font-normal text-[0.8rem]',
+              head_cell: 'text-muted-foreground rounded-md w-full font-normal text-[0.8rem] capitalize',
               row: 'flex w-full mt-2',
               cell: cn(
                 'relative p-0 text-center text-sm focus-within:relative focus-within:z-20 w-full h-16',
@@ -109,6 +116,8 @@ export function AgendamentoCalendar({
               day_today: 'bg-accent text-accent-foreground',
             }}
             components={{
+              IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+              IconRight: () => <ChevronRight className="h-4 w-4" />,
               DayContent: ({ date }) => {
                 const dayAgendamentos = getAgendamentosForDate(date);
                 const hasAgendamentos = dayAgendamentos.length > 0;
