@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -132,22 +133,22 @@ const Dashboard = () => {
             <CardDescription>Funcionalidades mais utilizadas</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <a href="/estoque/movimentacoes" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            <Link to="/estoque/movimentacoes" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Package className="h-5 w-5 text-muted-foreground" />
               <span>Registrar Movimentação de Estoque</span>
-            </a>
-            <a href="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            </Link>
+            <Link to="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <span>Lançar Horas Extras</span>
-            </a>
-            <a href="/nao-conformidades/funcionarios" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            </Link>
+            <Link to="/nao-conformidades/funcionarios" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               <span>Registrar NC de Funcionário</span>
-            </a>
-            <a href="/nao-conformidades/clientes" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            </Link>
+            <Link to="/nao-conformidades/clientes" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               <span>Registrar NC de Cliente</span>
-            </a>
+            </Link>
           </CardContent>
         </Card>
 
@@ -157,34 +158,34 @@ const Dashboard = () => {
             <CardDescription>Navegue pelos módulos disponíveis</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <a href="/cadastros/filiais" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            <Link to="/cadastros/filiais" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Building2 className="h-5 w-5 text-muted-foreground" />
               <div>
                 <div className="font-medium">Cadastros</div>
                 <div className="text-sm text-muted-foreground">Filiais, Clientes, Obras, Funcionários</div>
               </div>
-            </a>
-            <a href="/estoque/materiais" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            </Link>
+            <Link to="/estoque/materiais" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Package className="h-5 w-5 text-muted-foreground" />
               <div>
                 <div className="font-medium">Estoque</div>
                 <div className="text-sm text-muted-foreground">Materiais, Movimentações, Aluguéis</div>
               </div>
-            </a>
-            <a href="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            </Link>
+            <Link to="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div>
                 <div className="font-medium">Horas Extras</div>
                 <div className="text-sm text-muted-foreground">Lançamentos e Relatórios</div>
               </div>
-            </a>
-            <a href="/nao-conformidades/funcionarios" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            </Link>
+            <Link to="/nao-conformidades/funcionarios" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               <div>
                 <div className="font-medium">Não Conformidades</div>
                 <div className="text-sm text-muted-foreground">Funcionários, Clientes e Ranking</div>
               </div>
-            </a>
+            </Link>
           </CardContent>
         </Card>
 
