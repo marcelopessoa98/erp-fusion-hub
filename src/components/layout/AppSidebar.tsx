@@ -78,6 +78,10 @@ const agendamentosItems = [
   { title: 'Calendário', url: '/agendamentos', icon: CalendarDays },
 ];
 
+const servicosExtrasItems = [
+  { title: 'Gerenciar', url: '/servicos-extras', icon: Wrench },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
@@ -244,22 +248,22 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        {/* Serviços Extras - Em Desenvolvimento */}
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-md opacity-60 cursor-not-allowed">
-                <Wrench className="h-4 w-4 shrink-0" />
-                {!collapsed && (
-                  <div className="flex items-center gap-2">
-                    <span>Serviços Extras</span>
-                    <Badge variant="secondary" className="text-xs">Em breve</Badge>
-                  </div>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+        {/* Serviços Extras */}
+        <Collapsible defaultOpen={isActiveGroup(servicosExtrasItems)} className="group/collapsible">
+          <SidebarGroup>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="cursor-pointer hover:bg-accent rounded-md px-3 py-2 flex items-center justify-between">
+                <span className={cn(collapsed && 'sr-only')}>Serviços Extras</span>
+                {!collapsed && <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                {renderMenuItems(servicosExtrasItems)}
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
 
         {role === 'admin' && (
           <SidebarGroup>
