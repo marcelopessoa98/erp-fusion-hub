@@ -826,6 +826,76 @@ export type Database = {
           },
         ]
       }
+      servicos_extras: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_recebimento: string
+          descricao_servico: string
+          filial_id: string
+          id: string
+          material_recebido: string
+          obra_id: string
+          status_pagamento: string
+          status_servico: string
+          updated_at: string
+          user_id: string | null
+          usuario_nome: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_recebimento: string
+          descricao_servico: string
+          filial_id: string
+          id?: string
+          material_recebido: string
+          obra_id: string
+          status_pagamento?: string
+          status_servico?: string
+          updated_at?: string
+          user_id?: string | null
+          usuario_nome: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_recebimento?: string
+          descricao_servico?: string
+          filial_id?: string
+          id?: string
+          material_recebido?: string
+          obra_id?: string
+          status_pagamento?: string
+          status_servico?: string
+          updated_at?: string
+          user_id?: string | null
+          usuario_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicos_extras_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicos_extras_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicos_extras_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_nc: {
         Row: {
           ativo: boolean
