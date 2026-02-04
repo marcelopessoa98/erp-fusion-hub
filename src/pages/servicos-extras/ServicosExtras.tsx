@@ -42,10 +42,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Plus, Filter, Edit, Trash2, Wrench, Check, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { formatDateToString, formatDateBR } from '@/lib/dateUtils';
 
 export default function ServicosExtras() {
   const { profile, role, user } = useAuth();
@@ -74,7 +73,7 @@ export default function ServicosExtras() {
     material_recebido: '',
     descricao_servico: '',
     status_pagamento: 'pendente' as 'pago' | 'pendente',
-    data_recebimento: format(new Date(), 'yyyy-MM-dd'),
+    data_recebimento: formatDateToString(new Date()),
   });
 
   // Fetch data
@@ -126,7 +125,7 @@ export default function ServicosExtras() {
       material_recebido: '',
       descricao_servico: '',
       status_pagamento: 'pendente',
-      data_recebimento: format(new Date(), 'yyyy-MM-dd'),
+      data_recebimento: formatDateToString(new Date()),
     });
   };
 
@@ -455,7 +454,7 @@ export default function ServicosExtras() {
                   {servicos.map((servico) => (
                     <TableRow key={servico.id}>
                       <TableCell>
-                        {format(new Date(servico.data_recebimento), 'dd/MM/yyyy', { locale: ptBR })}
+                        {formatDateBR(servico.data_recebimento)}
                       </TableCell>
                       <TableCell>{servico.filial?.nome}</TableCell>
                       <TableCell>{servico.cliente?.nome}</TableCell>
@@ -514,7 +513,7 @@ export default function ServicosExtras() {
                   <strong>Obra:</strong> {selectedServico.obra?.nome}
                 </div>
                 <div>
-                  <strong>Data:</strong> {format(new Date(selectedServico.data_recebimento), 'dd/MM/yyyy')}
+                  <strong>Data:</strong> {formatDateBR(selectedServico.data_recebimento)}
                 </div>
                 <div>
                   <strong>Pagamento:</strong> {getStatusPagamentoBadge(selectedServico.status_pagamento)}
