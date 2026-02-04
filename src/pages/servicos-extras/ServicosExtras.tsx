@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -221,114 +222,119 @@ export default function ServicosExtras() {
               Novo Serviço
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Novo Serviço Extra</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Filial *</Label>
-                  <Select value={formData.filial_id} onValueChange={(v) => setFormData({ ...formData, filial_id: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filiais?.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <ScrollArea className="flex-1 pr-4">
+              <div className="grid gap-3 py-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Filial *</Label>
+                    <Select value={formData.filial_id} onValueChange={(v) => setFormData({ ...formData, filial_id: v })}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filiais?.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm">Data de Recebimento *</Label>
+                    <Input
+                      type="date"
+                      value={formData.data_recebimento}
+                      onChange={(e) => setFormData({ ...formData, data_recebimento: e.target.value })}
+                      className="h-9"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Data de Recebimento *</Label>
-                  <Input
-                    type="date"
-                    value={formData.data_recebimento}
-                    onChange={(e) => setFormData({ ...formData, data_recebimento: e.target.value })}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Cliente *</Label>
+                    <Select
+                      value={formData.cliente_id}
+                      onValueChange={(v) => setFormData({ ...formData, cliente_id: v, obra_id: '' })}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clientes?.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm">Obra *</Label>
+                    <Select
+                      value={formData.obra_id}
+                      onValueChange={(v) => setFormData({ ...formData, obra_id: v })}
+                      disabled={!formData.cliente_id}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder={formData.cliente_id ? 'Selecione' : 'Cliente primeiro'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {obras?.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-sm">Material Recebido *</Label>
+                  <Textarea
+                    value={formData.material_recebido}
+                    onChange={(e) => setFormData({ ...formData, material_recebido: e.target.value })}
+                    placeholder="Descreva o material recebido..."
+                    rows={2}
+                    className="min-h-[60px] resize-none"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Cliente *</Label>
+                <div className="space-y-1">
+                  <Label className="text-sm">Descrição do Serviço *</Label>
+                  <Textarea
+                    value={formData.descricao_servico}
+                    onChange={(e) => setFormData({ ...formData, descricao_servico: e.target.value })}
+                    placeholder="Descreva o serviço a ser realizado..."
+                    rows={2}
+                    className="min-h-[60px] resize-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-sm">Status de Pagamento</Label>
                   <Select
-                    value={formData.cliente_id}
-                    onValueChange={(v) => setFormData({ ...formData, cliente_id: v, obra_id: '' })}
+                    value={formData.status_pagamento}
+                    onValueChange={(v) => setFormData({ ...formData, status_pagamento: v as 'pago' | 'pendente' })}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {clientes?.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                      ))}
+                      <SelectItem value="pago">Pago no Recebimento</SelectItem>
+                      <SelectItem value="pendente">Pendente de Pagamento</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Obra *</Label>
-                  <Select
-                    value={formData.obra_id}
-                    onValueChange={(v) => setFormData({ ...formData, obra_id: v })}
-                    disabled={!formData.cliente_id}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={formData.cliente_id ? 'Selecione' : 'Selecione um cliente primeiro'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {obras?.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                <div className="text-xs text-muted-foreground">
+                  Registrado por: <strong>{profile?.nome || 'Usuário'}</strong>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label>Material Recebido *</Label>
-                <Textarea
-                  value={formData.material_recebido}
-                  onChange={(e) => setFormData({ ...formData, material_recebido: e.target.value })}
-                  placeholder="Descreva o material recebido..."
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Descrição do Serviço *</Label>
-                <Textarea
-                  value={formData.descricao_servico}
-                  onChange={(e) => setFormData({ ...formData, descricao_servico: e.target.value })}
-                  placeholder="Descreva o serviço a ser realizado..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Status de Pagamento</Label>
-                <Select
-                  value={formData.status_pagamento}
-                  onValueChange={(v) => setFormData({ ...formData, status_pagamento: v as 'pago' | 'pendente' })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pago">Pago no Recebimento</SelectItem>
-                    <SelectItem value="pendente">Pendente de Pagamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="text-sm text-muted-foreground">
-                Registrado por: <strong>{profile?.nome || 'Usuário'}</strong>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsNewDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSubmit} disabled={createServico.isPending}>
+            </ScrollArea>
+            <DialogFooter className="flex-shrink-0 pt-4 border-t">
+              <Button variant="outline" size="sm" onClick={() => setIsNewDialogOpen(false)}>Cancelar</Button>
+              <Button size="sm" onClick={handleSubmit} disabled={createServico.isPending}>
                 {createServico.isPending ? 'Salvando...' : 'Salvar'}
               </Button>
             </DialogFooter>

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -223,8 +224,8 @@ const Funcionarios = () => {
                 Novo Funcionário
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>
                   {editingFuncionario ? 'Editar Funcionário' : 'Novo Funcionário'}
                 </DialogTitle>
@@ -234,89 +235,99 @@ const Funcionarios = () => {
                     : 'Preencha os dados para criar um novo funcionário'}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome *</Label>
-                  <Input
-                    id="nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Nome completo"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dataNascimento">Data de Nascimento</Label>
+              <ScrollArea className="flex-1 pr-4">
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="nome" className="text-sm">Nome *</Label>
+                      <Input
+                        id="nome"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        placeholder="Nome completo"
+                        required
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="cargo" className="text-sm">Cargo</Label>
+                      <Input
+                        id="cargo"
+                        value={cargo}
+                        onChange={(e) => setCargo(e.target.value)}
+                        placeholder="Ex: Operador"
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="dataNascimento" className="text-sm">Data Nascimento</Label>
+                      <Input
+                        id="dataNascimento"
+                        type="date"
+                        value={dataNascimento}
+                        onChange={(e) => setDataNascimento(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="dataAdmissao" className="text-sm">Data Admissão</Label>
+                      <Input
+                        id="dataAdmissao"
+                        type="date"
+                        value={dataAdmissao}
+                        onChange={(e) => setDataAdmissao(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="telefone" className="text-sm">Telefone</Label>
+                      <Input
+                        id="telefone"
+                        value={telefone}
+                        onChange={(e) => setTelefone(e.target.value)}
+                        placeholder="(00) 00000-0000"
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="filial" className="text-sm">Filial</Label>
+                      <Select value={filialId} onValueChange={setFilialId}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filiais.map((filial) => (
+                            <SelectItem key={filial.id} value={filial.id}>
+                              {filial.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="email" className="text-sm">E-mail</Label>
                     <Input
-                      id="dataNascimento"
-                      type="date"
-                      value={dataNascimento}
-                      onChange={(e) => setDataNascimento(e.target.value)}
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@empresa.com"
+                      className="h-9"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cargo">Cargo</Label>
-                    <Input
-                      id="cargo"
-                      value={cargo}
-                      onChange={(e) => setCargo(e.target.value)}
-                      placeholder="Ex: Operador"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input
-                      id="telefone"
-                      value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
-                      placeholder="(00) 00000-0000"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dataAdmissao">Data de Admissão</Label>
-                    <Input
-                      id="dataAdmissao"
-                      type="date"
-                      value={dataAdmissao}
-                      onChange={(e) => setDataAdmissao(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@empresa.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="filial">Filial</Label>
-                  <Select value={filialId} onValueChange={setFilialId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a filial" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filiais.map((filial) => (
-                        <SelectItem key={filial.id} value={filial.id}>
-                          {filial.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={saving}>
-                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    {editingFuncionario ? 'Salvar' : 'Criar'}
-                  </Button>
-                </DialogFooter>
-              </form>
+                </form>
+              </ScrollArea>
+              <DialogFooter className="flex-shrink-0 pt-4 border-t">
+                <Button type="submit" size="sm" disabled={saving} onClick={handleSubmit}>
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editingFuncionario ? 'Salvar' : 'Criar'}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         )}

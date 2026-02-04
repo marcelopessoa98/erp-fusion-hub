@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -183,8 +184,8 @@ const Clientes = () => {
                 Novo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>
                   {editingCliente ? 'Editar Cliente' : 'Novo Cliente'}
                 </DialogTitle>
@@ -194,63 +195,70 @@ const Clientes = () => {
                     : 'Preencha os dados para criar um novo cliente'}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome *</Label>
-                  <Input
-                    id="nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Nome do cliente"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="documento">CPF/CNPJ</Label>
+              <ScrollArea className="flex-1 pr-4">
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="nome" className="text-sm">Nome *</Label>
                     <Input
-                      id="documento"
-                      value={documento}
-                      onChange={(e) => setDocumento(e.target.value)}
-                      placeholder="000.000.000-00"
+                      id="nome"
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      placeholder="Nome do cliente"
+                      required
+                      className="h-9"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="documento" className="text-sm">CPF/CNPJ</Label>
+                      <Input
+                        id="documento"
+                        value={documento}
+                        onChange={(e) => setDocumento(e.target.value)}
+                        placeholder="000.000.000-00"
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="telefone" className="text-sm">Telefone</Label>
+                      <Input
+                        id="telefone"
+                        value={telefone}
+                        onChange={(e) => setTelefone(e.target.value)}
+                        placeholder="(00) 00000-0000"
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="email" className="text-sm">E-mail</Label>
                     <Input
-                      id="telefone"
-                      value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
-                      placeholder="(00) 00000-0000"
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@cliente.com"
+                      className="h-9"
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@cliente.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço</Label>
-                  <Input
-                    id="endereco"
-                    value={endereco}
-                    onChange={(e) => setEndereco(e.target.value)}
-                    placeholder="Endereço completo"
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={saving}>
-                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    {editingCliente ? 'Salvar' : 'Criar'}
-                  </Button>
-                </DialogFooter>
-              </form>
+                  <div className="space-y-1">
+                    <Label htmlFor="endereco" className="text-sm">Endereço</Label>
+                    <Input
+                      id="endereco"
+                      value={endereco}
+                      onChange={(e) => setEndereco(e.target.value)}
+                      placeholder="Endereço completo"
+                      className="h-9"
+                    />
+                  </div>
+                </form>
+              </ScrollArea>
+              <DialogFooter className="flex-shrink-0 pt-4 border-t">
+                <Button type="submit" size="sm" disabled={saving} onClick={handleSubmit}>
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editingCliente ? 'Salvar' : 'Criar'}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
