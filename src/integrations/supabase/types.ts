@@ -701,6 +701,7 @@ export type Database = {
           filial_id: string
           id: string
           nome: string
+          referencia: string | null
           status: string
           updated_at: string
         }
@@ -713,6 +714,7 @@ export type Database = {
           filial_id: string
           id?: string
           nome: string
+          referencia?: string | null
           status?: string
           updated_at?: string
         }
@@ -725,6 +727,7 @@ export type Database = {
           filial_id?: string
           id?: string
           nome?: string
+          referencia?: string | null
           status?: string
           updated_at?: string
         }

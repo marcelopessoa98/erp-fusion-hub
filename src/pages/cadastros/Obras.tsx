@@ -32,8 +32,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, HardHat, Loader2, Search } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDateBR } from '@/lib/dateUtils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Filial {
   id: string;
@@ -49,6 +49,7 @@ interface Obra {
   id: string;
   nome: string;
   endereco: string | null;
+  referencia: string | null;
   status: string;
   data_inicio: string | null;
   data_previsao_fim: string | null;
@@ -81,6 +82,7 @@ const Obras = () => {
   // Form state
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [referencia, setReferencia] = useState('');
   const [status, setStatus] = useState('ativa');
   const [dataInicio, setDataInicio] = useState('');
   const [dataPrevisaoFim, setDataPrevisaoFim] = useState('');
@@ -120,6 +122,7 @@ const Obras = () => {
   const resetForm = () => {
     setNome('');
     setEndereco('');
+    setReferencia('');
     setStatus('ativa');
     setDataInicio('');
     setDataPrevisaoFim('');
@@ -132,6 +135,7 @@ const Obras = () => {
     setEditingObra(obra);
     setNome(obra.nome);
     setEndereco(obra.endereco || '');
+    setReferencia(obra.referencia || '');
     setStatus(obra.status);
     setDataInicio(obra.data_inicio || '');
     setDataPrevisaoFim(obra.data_previsao_fim || '');
@@ -154,6 +158,7 @@ const Obras = () => {
       const data = {
         nome,
         endereco: endereco || null,
+        referencia: referencia || null,
         status,
         data_inicio: dataInicio || null,
         data_previsao_fim: dataPrevisaoFim || null,
@@ -243,7 +248,7 @@ const Obras = () => {
                 Nova Obra
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-md max-h-[90vh]">
               <DialogHeader>
                 <DialogTitle>
                   {editingObra ? 'Editar Obra' : 'Nova Obra'}
@@ -254,100 +259,119 @@ const Obras = () => {
                     : 'Preencha os dados para criar uma nova obra'}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome da Obra *</Label>
-                  <Input
-                    id="nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Ex: Construção Bloco A"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cliente">Cliente *</Label>
-                    <Select value={clienteId} onValueChange={setClienteId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientes.map((cliente) => (
-                          <SelectItem key={cliente.id} value={cliente.id}>
-                            {cliente.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+              <ScrollArea className="max-h-[60vh] pr-4">
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="nome" className="text-sm">Nome da Obra *</Label>
+                      <Input
+                        id="nome"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        placeholder="Ex: Construção Bloco A"
+                        required
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="referencia" className="text-sm">Referência *</Label>
+                      <Input
+                        id="referencia"
+                        value={referencia}
+                        onChange={(e) => setReferencia(e.target.value)}
+                        placeholder="Ex: OBR-001"
+                        required
+                        className="h-9"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="filial">Filial *</Label>
-                    <Select value={filialId} onValueChange={setFilialId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filiais.map((filial) => (
-                          <SelectItem key={filial.id} value={filial.id}>
-                            {filial.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="cliente" className="text-sm">Cliente *</Label>
+                      <Select value={clienteId} onValueChange={setClienteId}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientes.map((cliente) => (
+                            <SelectItem key={cliente.id} value={cliente.id}>
+                              {cliente.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="filial" className="text-sm">Filial *</Label>
+                      <Select value={filialId} onValueChange={setFilialId}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filiais.map((filial) => (
+                            <SelectItem key={filial.id} value={filial.id}>
+                              {filial.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço</Label>
-                  <Input
-                    id="endereco"
-                    value={endereco}
-                    onChange={(e) => setEndereco(e.target.value)}
-                    placeholder="Endereço da obra"
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={status} onValueChange={setStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dataInicio">Data Início</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="endereco" className="text-sm">Endereço</Label>
                     <Input
-                      id="dataInicio"
-                      type="date"
-                      value={dataInicio}
-                      onChange={(e) => setDataInicio(e.target.value)}
+                      id="endereco"
+                      value={endereco}
+                      onChange={(e) => setEndereco(e.target.value)}
+                      placeholder="Endereço da obra"
+                      className="h-9"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dataPrevisaoFim">Previsão Fim</Label>
-                    <Input
-                      id="dataPrevisaoFim"
-                      type="date"
-                      value={dataPrevisaoFim}
-                      onChange={(e) => setDataPrevisaoFim(e.target.value)}
-                    />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="status" className="text-sm">Status</Label>
+                      <Select value={status} onValueChange={setStatus}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="dataInicio" className="text-sm">Data Início</Label>
+                      <Input
+                        id="dataInicio"
+                        type="date"
+                        value={dataInicio}
+                        onChange={(e) => setDataInicio(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="dataPrevisaoFim" className="text-sm">Previsão Fim</Label>
+                      <Input
+                        id="dataPrevisaoFim"
+                        type="date"
+                        value={dataPrevisaoFim}
+                        onChange={(e) => setDataPrevisaoFim(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={saving}>
-                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    {editingObra ? 'Salvar' : 'Criar'}
-                  </Button>
-                </DialogFooter>
-              </form>
+                </form>
+              </ScrollArea>
+              <DialogFooter className="mt-4">
+                <Button type="submit" disabled={saving} onClick={handleSubmit}>
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editingObra ? 'Salvar' : 'Criar'}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
@@ -415,6 +439,7 @@ const Obras = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Obra</TableHead>
+                  <TableHead>Referência</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Filial</TableHead>
                   <TableHead>Início</TableHead>
@@ -427,17 +452,14 @@ const Obras = () => {
                 {filteredObras.map((obra) => (
                   <TableRow key={obra.id}>
                     <TableCell className="font-medium">{obra.nome}</TableCell>
+                    <TableCell>{obra.referencia || '-'}</TableCell>
                     <TableCell>{obra.clientes?.nome || '-'}</TableCell>
                     <TableCell>{obra.filiais?.nome || '-'}</TableCell>
                     <TableCell>
-                      {obra.data_inicio
-                        ? format(new Date(obra.data_inicio), 'dd/MM/yyyy', { locale: ptBR })
-                        : '-'}
+                      {obra.data_inicio ? formatDateBR(obra.data_inicio) : '-'}
                     </TableCell>
                     <TableCell>
-                      {obra.data_previsao_fim
-                        ? format(new Date(obra.data_previsao_fim), 'dd/MM/yyyy', { locale: ptBR })
-                        : '-'}
+                      {obra.data_previsao_fim ? formatDateBR(obra.data_previsao_fim) : '-'}
                     </TableCell>
                     <TableCell>{getStatusBadge(obra.status)}</TableCell>
                     {isGerente && (
