@@ -315,21 +315,21 @@ const NCsFuncionarios = () => {
               Nova NC
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
+          <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Registrar NC de Funcionário</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Filial *</Label>
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-3 pr-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Filial *</Label>
                   <Select
                     value={formData.filial_id}
                     onValueChange={(value) =>
                       setFormData({ ...formData, filial_id: value, funcionario_id: "" })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -341,10 +341,11 @@ const NCsFuncionarios = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Data da Ocorrência *</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">Data *</Label>
                   <Input
                     type="date"
+                    className="h-9"
                     value={formData.data_ocorrencia}
                     onChange={(e) =>
                       setFormData({ ...formData, data_ocorrencia: e.target.value })
@@ -353,8 +354,8 @@ const NCsFuncionarios = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Funcionário *</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Funcionário *</Label>
                 <Select
                   value={formData.funcionario_id}
                   onValueChange={(value) =>
@@ -362,7 +363,7 @@ const NCsFuncionarios = () => {
                   }
                   disabled={!formData.filial_id}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Selecione o funcionário" />
                   </SelectTrigger>
                   <SelectContent>
@@ -375,9 +376,9 @@ const NCsFuncionarios = () => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Obra *</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Obra *</Label>
                   <Select
                     value={formData.obra_id}
                     onValueChange={(value) =>
@@ -385,8 +386,8 @@ const NCsFuncionarios = () => {
                     }
                     disabled={!formData.filial_id}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a obra" />
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {obras.map((o) => (
@@ -397,15 +398,15 @@ const NCsFuncionarios = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Gravidade *</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">Gravidade *</Label>
                   <Select
                     value={formData.gravidade}
                     onValueChange={(value) =>
                       setFormData({ ...formData, gravidade: value as NCGravidade })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -418,15 +419,15 @@ const NCsFuncionarios = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Tipo de NC</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Tipo de NC</Label>
                 <Select
                   value={formData.tipo_nc_id}
                   onValueChange={(value) =>
                     setFormData({ ...formData, tipo_nc_id: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -439,9 +440,10 @@ const NCsFuncionarios = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Título *</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Título *</Label>
                 <Input
+                  className="h-9"
                   value={formData.titulo}
                   onChange={(e) =>
                     setFormData({ ...formData, titulo: e.target.value })
@@ -450,31 +452,30 @@ const NCsFuncionarios = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Descrição *</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Descrição *</Label>
                 <Textarea
                   value={formData.descricao}
                   onChange={(e) =>
                     setFormData({ ...formData, descricao: e.target.value })
                   }
                   placeholder="Descreva a não conformidade..."
-                  rows={4}
+                  rows={3}
                 />
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Salvando..." : "Salvar"}
-                </Button>
-              </div>
             </form>
+            <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSubmit} disabled={createMutation.isPending}>
+                {createMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
