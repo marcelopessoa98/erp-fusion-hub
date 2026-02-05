@@ -56,9 +56,10 @@ const cadastrosItems = [
 ];
 
 const estoqueItems = [
-  { title: 'Materiais', url: '/estoque/materiais', icon: Package },
+  { title: 'Cadastro de Materiais', url: '/estoque/materiais', icon: Package },
+  { title: 'Materiais em Obra', url: '/estoque/materiais-obra', icon: Construction },
+  { title: 'Aluguéis em Obra', url: '/estoque/alugueis-obra', icon: Clock },
   { title: 'Movimentações', url: '/estoque/movimentacoes', icon: ArrowLeftRight },
-  { title: 'Aluguéis', url: '/estoque/alugueis', icon: Clock },
 ];
 
 const horasExtrasItems = [

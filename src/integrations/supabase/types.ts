@@ -190,6 +190,60 @@ export type Database = {
           },
         ]
       }
+      alugueis_obra: {
+        Row: {
+          created_at: string
+          data_previsao_retorno: string | null
+          data_saida: string
+          id: string
+          material_id: string
+          obra_id: string
+          observacao: string | null
+          quantidade: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_previsao_retorno?: string | null
+          data_saida?: string
+          id?: string
+          material_id: string
+          obra_id: string
+          observacao?: string | null
+          quantidade?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_previsao_retorno?: string | null
+          data_saida?: string
+          id?: string
+          material_id?: string
+          obra_id?: string
+          observacao?: string | null
+          quantidade?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alugueis_obra_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alugueis_obra_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avaliacoes_funcionarios: {
         Row: {
           created_at: string
@@ -530,6 +584,54 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias_material"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materiais_obra: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string
+          obra_id: string
+          observacao: string | null
+          quantidade: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id: string
+          obra_id: string
+          observacao?: string | null
+          quantidade?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string
+          obra_id?: string
+          observacao?: string | null
+          quantidade?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materiais_obra_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materiais_obra_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
             referencedColumns: ["id"]
           },
         ]
