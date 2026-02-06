@@ -494,6 +494,7 @@ export type Database = {
           funcionario_id: string
           horas: number
           id: string
+          obra_id: string | null
           observacao: string | null
           tipo: string
           updated_at: string
@@ -508,6 +509,7 @@ export type Database = {
           funcionario_id: string
           horas: number
           id?: string
+          obra_id?: string | null
           observacao?: string | null
           tipo?: string
           updated_at?: string
@@ -522,6 +524,7 @@ export type Database = {
           funcionario_id?: string
           horas?: number
           id?: string
+          obra_id?: string | null
           observacao?: string | null
           tipo?: string
           updated_at?: string
@@ -540,6 +543,13 @@ export type Database = {
             columns: ["funcionario_id"]
             isOneToOne: false
             referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horas_extras_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
             referencedColumns: ["id"]
           },
         ]
