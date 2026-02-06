@@ -31,7 +31,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Users } from "lucide-react";
+import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Users, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -225,6 +225,29 @@ const NCsClientes = () => {
       toast.error("Erro ao registrar NC: " + error.message);
     },
   });
+
+  // Delete NC mutation (admin only)
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("nao_conformidades")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ncs-clientes"] });
+      toast.success("NC excluída com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao excluir NC: " + error.message);
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta NC? Esta ação não pode ser desfeita.")) return;
+    deleteMutation.mutate(id);
+  };
 
   // Resolve NC mutation
   const resolveMutation = useMutation({
@@ -616,6 +639,15 @@ const NCsClientes = () => {
                               }}
                             >
                               <CheckCircle className="h-4 w-4 text-green-500" />
+                            </Button>
+                          )}
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(nc.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           )}
                         </div>

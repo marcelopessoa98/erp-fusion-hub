@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { Separator } from '@/components/ui/separator';
+import { NotificacoesPanel } from '@/components/notifications/NotificacoesPanel';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,10 +23,10 @@ const routeLabels: Record<string, string> = {
   'clientes': 'Clientes',
   'obras': 'Obras',
   'funcionarios': 'Funcionários',
-  'estoque': 'Estoque',
-  'materiais': 'Materiais',
-  'movimentacoes': 'Movimentações',
-  'alugueis': 'Aluguéis',
+  'materiais': 'Controle de Materiais',
+  'cadastro': 'Cadastrar Materiais',
+  'em-obra': 'Materiais em Obra',
+  'estoque': 'Materiais em Estoque',
   'horas-extras': 'Horas Extras',
   'lancamentos': 'Lançamentos',
   'relatorios': 'Relatórios',
@@ -60,6 +61,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
+            <div className="flex-1">
             <Breadcrumb>
               <BreadcrumbList>
                 {breadcrumbs.length === 0 ? (
@@ -80,6 +82,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 )}
               </BreadcrumbList>
             </Breadcrumb>
+            </div>
+            <NotificacoesPanel />
           </header>
           <main className="flex-1 p-6">
             {children}

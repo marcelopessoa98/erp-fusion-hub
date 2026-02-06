@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Search, AlertTriangle, CheckCircle, Clock, Eye } from 'lucide-react';
+import { Plus, Search, AlertTriangle, CheckCircle, Clock, Eye, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -76,7 +76,7 @@ interface NaoConformidade {
 }
 
 const Ocorrencias = () => {
-  const { user, isGerente } = useAuth();
+  const { user, isGerente, isAdmin } = useAuth();
   const [ocorrencias, setOcorrencias] = useState<NaoConformidade[]>([]);
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -185,6 +185,19 @@ const Ocorrencias = () => {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error('Erro ao registrar: ' + message);
+    }
+  };
+
+  const deleteOcorrencia = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.')) return;
+    try {
+      const { error } = await supabase.from('nao_conformidades').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Ocorrência excluída com sucesso!');
+      fetchData();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao excluir: ' + message);
     }
   };
 
@@ -557,16 +570,27 @@ const Ocorrencias = () => {
                     <TableCell>{oc.funcionarios?.nome || '-'}</TableCell>
                     <TableCell>{getStatusBadge(oc.status)}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedOcorrencia(oc);
-                          setViewDialogOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedOcorrencia(oc);
+                            setViewDialogOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteOcorrencia(oc.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
