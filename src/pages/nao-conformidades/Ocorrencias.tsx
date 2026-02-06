@@ -299,15 +299,16 @@ const Ocorrencias = () => {
               Nova Ocorrência
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
+          <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Registrar Não Conformidade</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="titulo">Título *</Label>
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-3 pr-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Título *</Label>
                 <Input
                   id="titulo"
+                  className="h-9"
                   value={formData.titulo}
                   onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                   placeholder="Breve descrição do problema"
@@ -315,26 +316,26 @@ const Ocorrencias = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição *</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Descrição *</Label>
                 <Textarea
                   id="descricao"
                   value={formData.descricao}
                   onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                   placeholder="Detalhes da ocorrência..."
-                  rows={3}
+                  rows={2}
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo *</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Tipo *</Label>
                   <Select
                     value={formData.tipo}
                     onValueChange={(value) => setFormData({ ...formData, tipo: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -347,13 +348,13 @@ const Ocorrencias = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gravidade">Gravidade *</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">Gravidade *</Label>
                   <Select
                     value={formData.gravidade}
                     onValueChange={(value) => setFormData({ ...formData, gravidade: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -366,14 +367,14 @@ const Ocorrencias = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="filial">Filial *</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Filial *</Label>
                   <Select
                     value={formData.filial_id}
                     onValueChange={(value) => setFormData({ ...formData, filial_id: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -385,11 +386,12 @@ const Ocorrencias = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="data_ocorrencia">Data *</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">Data *</Label>
                   <Input
                     id="data_ocorrencia"
                     type="date"
+                    className="h-9"
                     value={formData.data_ocorrencia}
                     onChange={(e) =>
                       setFormData({ ...formData, data_ocorrencia: e.target.value })
@@ -399,14 +401,14 @@ const Ocorrencias = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="funcionario">Funcionário Responsável</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Funcionário</Label>
                   <Select
                     value={formData.funcionario_id}
                     onValueChange={(value) => setFormData({ ...formData, funcionario_id: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
                     <SelectContent>
@@ -418,13 +420,13 @@ const Ocorrencias = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="obra">Obra</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">Obra</Label>
                   <Select
                     value={formData.obra_id}
                     onValueChange={(value) => setFormData({ ...formData, obra_id: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
                     <SelectContent>
@@ -438,10 +440,12 @@ const Ocorrencias = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
+            </form>
+            <div className="flex-shrink-0 pt-4 border-t">
+              <Button onClick={handleSubmit} className="w-full">
                 Registrar Ocorrência
               </Button>
-            </form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
