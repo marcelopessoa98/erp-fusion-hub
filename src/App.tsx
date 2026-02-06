@@ -15,10 +15,8 @@ import Clientes from "./pages/cadastros/Clientes";
 import Obras from "./pages/cadastros/Obras";
 import Funcionarios from "./pages/cadastros/Funcionarios";
 import Materiais from "./pages/estoque/Materiais";
-import Movimentacoes from "./pages/estoque/Movimentacoes";
-import Alugueis from "./pages/estoque/Alugueis";
 import MateriaisObra from "./pages/estoque/MateriaisObra";
-import AlugueisObra from "./pages/estoque/AlugueisObra";
+import Estoque from "./pages/estoque/Estoque";
 import Lancamentos from "./pages/horas-extras/Lancamentos";
 import Relatorios from "./pages/horas-extras/Relatorios";
 import Ocorrencias from "./pages/nao-conformidades/Ocorrencias";
@@ -103,9 +101,9 @@ const AppRoutes = () => {
         }
       />
       
-      {/* Estoque / Materiais em Obra */}
+      {/* Controle de Materiais */}
       <Route
-        path="/estoque/materiais"
+        path="/materiais/cadastro"
         element={
           <ProtectedRoute>
             <AppLayout>
@@ -115,7 +113,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/estoque/materiais-obra"
+        path="/materiais/em-obra"
         element={
           <ProtectedRoute>
             <AppLayout>
@@ -125,31 +123,11 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/estoque/alugueis-obra"
+        path="/materiais/estoque"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <AlugueisObra />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/estoque/movimentacoes"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Movimentacoes />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/estoque/alugueis"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Alugueis />
+              <Estoque />
             </AppLayout>
           </ProtectedRoute>
         }

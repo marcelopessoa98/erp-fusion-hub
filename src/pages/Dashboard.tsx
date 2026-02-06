@@ -133,9 +133,9 @@ const Dashboard = () => {
             <CardDescription>Funcionalidades mais utilizadas</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <Link to="/estoque/movimentacoes" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            <Link to="/materiais/em-obra" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Package className="h-5 w-5 text-muted-foreground" />
-              <span>Registrar Movimentação de Estoque</span>
+              <span>Materiais em Obra</span>
             </Link>
             <Link to="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Clock className="h-5 w-5 text-muted-foreground" />
@@ -165,11 +165,11 @@ const Dashboard = () => {
                 <div className="text-sm text-muted-foreground">Filiais, Clientes, Obras, Funcionários</div>
               </div>
             </Link>
-            <Link to="/estoque/materiais" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+            <Link to="/materiais/cadastro" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Package className="h-5 w-5 text-muted-foreground" />
               <div>
-                <div className="font-medium">Estoque</div>
-                <div className="text-sm text-muted-foreground">Materiais, Movimentações, Aluguéis</div>
+                <div className="font-medium">Controle de Materiais</div>
+                <div className="text-sm text-muted-foreground">Cadastro, Obras, Estoque</div>
               </div>
             </Link>
             <Link to="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">

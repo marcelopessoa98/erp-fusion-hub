@@ -55,11 +55,10 @@ const cadastrosItems = [
   { title: 'Funcionários', url: '/cadastros/funcionarios', icon: UserCog },
 ];
 
-const estoqueItems = [
-  { title: 'Cadastro de Materiais', url: '/estoque/materiais', icon: Package },
-  { title: 'Materiais em Obra', url: '/estoque/materiais-obra', icon: Construction },
-  { title: 'Aluguéis em Obra', url: '/estoque/alugueis-obra', icon: Clock },
-  { title: 'Movimentações', url: '/estoque/movimentacoes', icon: ArrowLeftRight },
+const controleMateriais = [
+  { title: 'Cadastrar Materiais', url: '/materiais/cadastro', icon: Package },
+  { title: 'Materiais em Obra', url: '/materiais/em-obra', icon: Construction },
+  { title: 'Materiais em Estoque', url: '/materiais/estoque', icon: ArrowLeftRight },
 ];
 
 const horasExtrasItems = [
@@ -164,18 +163,18 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Estoque */}
-        <Collapsible defaultOpen={isActiveGroup(estoqueItems)} className="group/collapsible">
+        {/* Controle de Materiais */}
+        <Collapsible defaultOpen={isActiveGroup(controleMateriais)} className="group/collapsible">
           <SidebarGroup>
             <CollapsibleTrigger asChild>
               <SidebarGroupLabel className="cursor-pointer hover:bg-accent rounded-md px-3 py-2 flex items-center justify-between">
-                <span className={cn(collapsed && 'sr-only')}>Estoque</span>
+                <span className={cn(collapsed && 'sr-only')}>Controle de Materiais</span>
                 {!collapsed && <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
               </SidebarGroupLabel>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarGroupContent>
-                {renderMenuItems(estoqueItems)}
+                {renderMenuItems(controleMateriais)}
               </SidebarGroupContent>
             </CollapsibleContent>
           </SidebarGroup>
