@@ -359,6 +359,66 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos_funcionarios: {
+        Row: {
+          created_at: string
+          data_emissao: string | null
+          data_validade: string | null
+          filial_id: string
+          funcionario_id: string
+          id: string
+          nome_documento: string
+          observacoes: string | null
+          status: string
+          tipo_documento: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_emissao?: string | null
+          data_validade?: string | null
+          filial_id: string
+          funcionario_id: string
+          id?: string
+          nome_documento: string
+          observacoes?: string | null
+          status?: string
+          tipo_documento: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_emissao?: string | null
+          data_validade?: string | null
+          filial_id?: string
+          funcionario_id?: string
+          id?: string
+          nome_documento?: string
+          observacoes?: string | null
+          status?: string
+          tipo_documento?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_funcionarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_funcionarios_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estoque: {
         Row: {
           filial_id: string
@@ -639,6 +699,129 @@ export type Database = {
           },
           {
             foreignKeyName: "materiais_obra_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicao_itens: {
+        Row: {
+          checado: boolean
+          created_at: string
+          descricao: string
+          id: string
+          medicao_id: string
+          ordem: number
+          quantidade: number
+          unidade: string
+          valor_total: number
+          valor_unitario: number
+        }
+        Insert: {
+          checado?: boolean
+          created_at?: string
+          descricao: string
+          id?: string
+          medicao_id: string
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+          valor_total?: number
+          valor_unitario?: number
+        }
+        Update: {
+          checado?: boolean
+          created_at?: string
+          descricao?: string
+          id?: string
+          medicao_id?: string
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+          valor_total?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicao_itens_medicao_id_fkey"
+            columns: ["medicao_id"]
+            isOneToOne: false
+            referencedRelation: "medicoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicoes: {
+        Row: {
+          aprovado_por: string | null
+          cliente_id: string
+          created_at: string
+          data_aprovacao: string | null
+          filial_id: string
+          id: string
+          numero_medicao: number
+          obra_id: string
+          observacoes: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          valor_total: number
+        }
+        Insert: {
+          aprovado_por?: string | null
+          cliente_id: string
+          created_at?: string
+          data_aprovacao?: string | null
+          filial_id: string
+          id?: string
+          numero_medicao?: number
+          obra_id: string
+          observacoes?: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_total?: number
+        }
+        Update: {
+          aprovado_por?: string | null
+          cliente_id?: string
+          created_at?: string
+          data_aprovacao?: string | null
+          filial_id?: string
+          id?: string
+          numero_medicao?: number
+          obra_id?: string
+          observacoes?: string | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_obra_id_fkey"
             columns: ["obra_id"]
             isOneToOne: false
             referencedRelation: "obras"
@@ -1004,6 +1187,110 @@ export type Database = {
           },
           {
             foreignKeyName: "servicos_extras_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitacao_compras_itens: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          observacao: string | null
+          quantidade: number
+          solicitacao_id: string
+          unidade: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          observacao?: string | null
+          quantidade?: number
+          solicitacao_id: string
+          unidade?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          observacao?: string | null
+          quantidade?: number
+          solicitacao_id?: string
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacao_compras_itens_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_compras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitacoes_compras: {
+        Row: {
+          aprovado_por: string | null
+          created_at: string
+          data_aprovacao: string | null
+          data_solicitacao: string
+          filial_id: string
+          id: string
+          motivo_rejeicao: string | null
+          obra_id: string | null
+          observacoes: string | null
+          solicitante_nome: string
+          status: string
+          updated_at: string
+          urgencia: string
+          user_id: string | null
+        }
+        Insert: {
+          aprovado_por?: string | null
+          created_at?: string
+          data_aprovacao?: string | null
+          data_solicitacao?: string
+          filial_id: string
+          id?: string
+          motivo_rejeicao?: string | null
+          obra_id?: string | null
+          observacoes?: string | null
+          solicitante_nome: string
+          status?: string
+          updated_at?: string
+          urgencia?: string
+          user_id?: string | null
+        }
+        Update: {
+          aprovado_por?: string | null
+          created_at?: string
+          data_aprovacao?: string | null
+          data_solicitacao?: string
+          filial_id?: string
+          id?: string
+          motivo_rejeicao?: string | null
+          obra_id?: string | null
+          observacoes?: string | null
+          solicitante_nome?: string
+          status?: string
+          updated_at?: string
+          urgencia?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_compras_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_compras_obra_id_fkey"
             columns: ["obra_id"]
             isOneToOne: false
             referencedRelation: "obras"
