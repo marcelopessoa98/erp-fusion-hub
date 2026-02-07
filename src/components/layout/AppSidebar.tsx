@@ -37,6 +37,10 @@ import {
   DollarSign,
   Wrench,
   Construction,
+  FileText,
+  ClipboardList,
+  FileSignature,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +57,13 @@ const cadastrosItems = [
   { title: 'Clientes', url: '/cadastros/clientes', icon: Users },
   { title: 'Obras', url: '/cadastros/obras', icon: HardHat },
   { title: 'Funcionários', url: '/cadastros/funcionarios', icon: UserCog },
+  { title: 'Documentação', url: '/cadastros/documentacao', icon: FileText },
+];
+
+const financeiroItems = [
+  { title: 'Medições', url: '/financeiro/medicoes', icon: ClipboardList },
+  { title: 'Propostas', url: '/financeiro/propostas', icon: FileSignature },
+  { title: 'Compras', url: '/financeiro/compras', icon: ShoppingCart },
 ];
 
 const controleMateriais = [
@@ -231,22 +242,22 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Financeiro - Em Desenvolvimento */}
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-md opacity-60 cursor-not-allowed">
-                <DollarSign className="h-4 w-4 shrink-0" />
-                {!collapsed && (
-                  <div className="flex items-center gap-2">
-                    <span>Financeiro</span>
-                    <Badge variant="secondary" className="text-xs">Em breve</Badge>
-                  </div>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+        {/* Financeiro */}
+        <Collapsible defaultOpen={isActiveGroup(financeiroItems)} className="group/collapsible">
+          <SidebarGroup>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="cursor-pointer hover:bg-accent rounded-md px-3 py-2 flex items-center justify-between">
+                <span className={cn(collapsed && 'sr-only')}>Financeiro</span>
+                {!collapsed && <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                {renderMenuItems(financeiroItems)}
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
 
         {/* Serviços Extras */}
         <Collapsible defaultOpen={isActiveGroup(servicosExtrasItems)} className="group/collapsible">
