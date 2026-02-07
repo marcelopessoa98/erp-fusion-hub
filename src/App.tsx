@@ -28,6 +28,10 @@ import TiposNC from "./pages/nao-conformidades/TiposNC";
 import Agendamentos from "./pages/agendamentos/Agendamentos";
 import ServicosExtras from "./pages/servicos-extras/ServicosExtras";
 import Usuarios from "./pages/admin/Usuarios";
+import DocumentacaoFuncionarios from "./pages/cadastros/DocumentacaoFuncionarios";
+import Medicoes from "./pages/financeiro/Medicoes";
+import Propostas from "./pages/financeiro/Propostas";
+import SolicitacoesCompras from "./pages/financeiro/SolicitacoesCompras";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -236,6 +240,50 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <ServicosExtras />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Documentação Funcionários */}
+      <Route
+        path="/cadastros/documentacao"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <DocumentacaoFuncionarios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Financeiro */}
+      <Route
+        path="/financeiro/medicoes"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Medicoes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/financeiro/propostas"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Propostas />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/financeiro/compras"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <SolicitacoesCompras />
             </AppLayout>
           </ProtectedRoute>
         }
