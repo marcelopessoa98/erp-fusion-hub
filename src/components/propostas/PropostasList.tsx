@@ -158,16 +158,6 @@ export function PropostasList({
                           </Button>
                         )}
 
-                        {(p.status === 'aprovada' || p.status === 'enviada') && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onVerDetalhes(p.id)}
-                            title="Ver / Gerar PDF"
-                          >
-                            <Eye className="h-4 w-4 text-primary" />
-                          </Button>
-                        )}
 
                         {(p.status === 'rascunho' || isAdmin) && (
                           <Button
