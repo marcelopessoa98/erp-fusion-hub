@@ -190,6 +190,67 @@ export function usePropostas() {
     }
   };
 
+  const editarProposta = async (
+    id: string,
+    proposta: {
+      assunto: string;
+      cliente_id: string;
+      obra_id: string;
+      filial_id: string;
+      elaborado_por?: string;
+      consideracoes_gerais?: string;
+      consideracoes_pagamento?: string;
+      dados_bancarios?: Record<string, string>;
+      validade_dias?: number;
+    },
+    itens: PropostaItem[]
+  ) => {
+    try {
+      const { error: pErr } = await supabase
+        .from('propostas')
+        .update({
+          assunto: proposta.assunto,
+          cliente_id: proposta.cliente_id,
+          obra_id: proposta.obra_id,
+          filial_id: proposta.filial_id,
+          elaborado_por: proposta.elaborado_por || null,
+          consideracoes_gerais: proposta.consideracoes_gerais || null,
+          consideracoes_pagamento: proposta.consideracoes_pagamento || null,
+          dados_bancarios: proposta.dados_bancarios || {},
+          validade_dias: proposta.validade_dias || 30,
+        })
+        .eq('id', id);
+
+      if (pErr) throw pErr;
+
+      // Delete old items and insert new ones
+      await supabase.from('proposta_itens').delete().eq('proposta_id', id);
+
+      const validItens = itens.filter((i) => i.descricao.trim());
+      if (validItens.length > 0) {
+        const { error: iErr } = await supabase
+          .from('proposta_itens')
+          .insert(
+            validItens.map((item, idx) => ({
+              proposta_id: id,
+              descricao: item.descricao,
+              valor_unitario: item.valor_unitario,
+              unidade: item.unidade,
+              detalhes: item.detalhes || null,
+              ordem: idx,
+            }))
+          );
+        if (iErr) throw iErr;
+      }
+
+      toast.success('Proposta atualizada com sucesso!');
+      fetchPropostas();
+    } catch (err: any) {
+      toast.error('Erro ao atualizar proposta: ' + err.message);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchPropostas();
   }, []);
@@ -200,6 +261,7 @@ export function usePropostas() {
     fetchPropostas,
     fetchPropostaComItens,
     criarProposta,
+    editarProposta,
     aprovarProposta,
     atualizarStatus,
     excluirProposta,

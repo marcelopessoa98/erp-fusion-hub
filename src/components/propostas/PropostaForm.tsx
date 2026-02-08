@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Plus, Trash2 } from 'lucide-react';
-import { PropostaItem } from '@/hooks/usePropostas';
+import { Proposta, PropostaItem } from '@/hooks/usePropostas';
 
 interface PropostaFormProps {
   open: boolean;
@@ -39,6 +39,7 @@ interface PropostaFormProps {
     },
     itens: PropostaItem[]
   ) => Promise<any>;
+  propostaParaEditar?: Proposta | null;
 }
 
 const CONSIDERACOES_PADRAO = `• A CONTRATADA disponibilizará funcionários especializados durante a execução dos ensaios (horário normal de trabalho de acordo com o sindicato local).
@@ -58,7 +59,7 @@ const DADOS_BANCARIOS_PADRAO: Record<string, string> = {
   nome: 'RAFAELA FUJITA LIMA',
 };
 
-export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
+export function PropostaForm({ open, onClose, onSubmit, propostaParaEditar }: PropostaFormProps) {
   const { profile } = useAuth();
   const [clientes, setClientes] = useState<any[]>([]);
   const [obras, setObras] = useState<any[]>([]);
@@ -77,17 +78,42 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
     { descricao: '', valor_unitario: 0, unidade: 'und', detalhes: '', ordem: 0 },
   ]);
 
+  const isEditing = !!propostaParaEditar;
+
   useEffect(() => {
     if (open) {
       fetchData();
-      setElaboradoPor(profile?.nome || '');
+      if (propostaParaEditar) {
+        setClienteId(propostaParaEditar.cliente_id);
+        setObraId(propostaParaEditar.obra_id);
+        setAssunto(propostaParaEditar.assunto);
+        setElaboradoPor(propostaParaEditar.elaborado_por || '');
+        setConsideracoesGerais(propostaParaEditar.consideracoes_gerais || CONSIDERACOES_PADRAO);
+        setConsideracoesPagamento(propostaParaEditar.consideracoes_pagamento || PAGAMENTO_PADRAO);
+        setDadosBancarios(
+          propostaParaEditar.dados_bancarios && Object.keys(propostaParaEditar.dados_bancarios).length > 0
+            ? propostaParaEditar.dados_bancarios
+            : DADOS_BANCARIOS_PADRAO
+        );
+        setValidadeDias(propostaParaEditar.validade_dias || 30);
+        if (propostaParaEditar.itens && propostaParaEditar.itens.length > 0) {
+          setItens(propostaParaEditar.itens);
+        } else {
+          setItens([{ descricao: '', valor_unitario: 0, unidade: 'und', detalhes: '', ordem: 0 }]);
+        }
+      } else {
+        setElaboradoPor(profile?.nome || '');
+      }
     }
-  }, [open, profile]);
+  }, [open, propostaParaEditar, profile]);
 
   useEffect(() => {
     if (clienteId) {
       setObrasFiltradas(obras.filter((o) => o.cliente_id === clienteId));
-      setObraId('');
+      // Only reset obraId when not editing (to preserve the initial value)
+      if (!isEditing || !propostaParaEditar) {
+        setObraId('');
+      }
     } else {
       setObrasFiltradas([]);
     }
@@ -167,10 +193,10 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { resetForm(); onClose(); } }}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nova Proposta Comercial</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Proposta Comercial' : 'Nova Proposta Comercial'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -335,14 +361,14 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
           </Card>
 
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={() => { resetForm(); onClose(); }}>
               Cancelar
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={submitting || !clienteId || !obraId || !assunto.trim()}
             >
-              {submitting ? 'Criando...' : 'Criar Proposta'}
+              {submitting ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar Alterações' : 'Criar Proposta')}
             </Button>
           </div>
         </div>
