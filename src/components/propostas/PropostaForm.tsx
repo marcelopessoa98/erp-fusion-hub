@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +31,7 @@ interface PropostaFormProps {
       cliente_id: string;
       obra_id: string;
       filial_id: string;
+      elaborado_por?: string;
       consideracoes_gerais?: string;
       consideracoes_pagamento?: string;
       dados_bancarios?: Record<string, string>;
@@ -57,6 +59,7 @@ const DADOS_BANCARIOS_PADRAO: Record<string, string> = {
 };
 
 export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
+  const { profile } = useAuth();
   const [clientes, setClientes] = useState<any[]>([]);
   const [obras, setObras] = useState<any[]>([]);
   const [obrasFiltradas, setObrasFiltradas] = useState<any[]>([]);
@@ -65,6 +68,7 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
   const [clienteId, setClienteId] = useState('');
   const [obraId, setObraId] = useState('');
   const [assunto, setAssunto] = useState('');
+  const [elaboradoPor, setElaboradoPor] = useState('');
   const [consideracoesGerais, setConsideracoesGerais] = useState(CONSIDERACOES_PADRAO);
   const [consideracoesPagamento, setConsideracoesPagamento] = useState(PAGAMENTO_PADRAO);
   const [dadosBancarios, setDadosBancarios] = useState(DADOS_BANCARIOS_PADRAO);
@@ -76,8 +80,9 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
   useEffect(() => {
     if (open) {
       fetchData();
+      setElaboradoPor(profile?.nome || '');
     }
-  }, [open]);
+  }, [open, profile]);
 
   useEffect(() => {
     if (clienteId) {
@@ -117,9 +122,7 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!clienteId || !obraId || !assunto.trim()) {
-      return;
-    }
+    if (!clienteId || !obraId || !assunto.trim()) return;
     const validItens = itens.filter((i) => i.descricao.trim());
     if (validItens.length === 0) return;
 
@@ -134,6 +137,7 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
           cliente_id: clienteId,
           obra_id: obraId,
           filial_id: obra.filial_id,
+          elaborado_por: elaboradoPor || undefined,
           consideracoes_gerais: consideracoesGerais,
           consideracoes_pagamento: consideracoesPagamento,
           dados_bancarios: dadosBancarios,
@@ -144,7 +148,7 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
       resetForm();
       onClose();
     } catch {
-      // error handled in hook
+      // handled in hook
     } finally {
       setSubmitting(false);
     }
@@ -154,6 +158,7 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
     setClienteId('');
     setObraId('');
     setAssunto('');
+    setElaboradoPor('');
     setConsideracoesGerais(CONSIDERACOES_PADRAO);
     setConsideracoesPagamento(PAGAMENTO_PADRAO);
     setDadosBancarios(DADOS_BANCARIOS_PADRAO);
@@ -169,7 +174,6 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Cabeçalho */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Dados da Proposta</CardTitle>
@@ -205,13 +209,23 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Assunto *</Label>
-                <Input
-                  value={assunto}
-                  onChange={(e) => setAssunto(e.target.value)}
-                  placeholder="Ex: Proposta de Ensaio de Extração"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Assunto *</Label>
+                  <Input
+                    value={assunto}
+                    onChange={(e) => setAssunto(e.target.value)}
+                    placeholder="Ex: Proposta de Ensaio de Extração"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Elaborado por</Label>
+                  <Input
+                    value={elaboradoPor}
+                    onChange={(e) => setElaboradoPor(e.target.value)}
+                    placeholder="Nome de quem elaborou"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Validade (dias)</Label>
@@ -225,7 +239,6 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
             </CardContent>
           </Card>
 
-          {/* Itens / Serviços */}
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-base">Ensaios / Serviços</CardTitle>
@@ -284,7 +297,6 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
             </CardContent>
           </Card>
 
-          {/* Considerações Gerais */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Considerações Gerais</CardTitle>
@@ -298,7 +310,6 @@ export function PropostaForm({ open, onClose, onSubmit }: PropostaFormProps) {
             </CardContent>
           </Card>
 
-          {/* Considerações de Pagamento */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Considerações de Pagamento</CardTitle>

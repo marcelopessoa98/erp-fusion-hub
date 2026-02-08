@@ -11,6 +11,7 @@ const Propostas = () => {
     propostas,
     loading,
     criarProposta,
+    aprovarProposta,
     atualizarStatus,
     excluirProposta,
     fetchPropostaComItens,
@@ -36,6 +37,7 @@ const Propostas = () => {
       <PropostasList
         propostas={propostas}
         loading={loading}
+        onAprovar={aprovarProposta}
         onAtualizarStatus={atualizarStatus}
         onExcluir={excluirProposta}
         onVerDetalhes={setDetalhesId}

@@ -26,7 +26,9 @@ export interface Proposta {
   validade_dias: number;
   observacoes: string | null;
   user_id: string | null;
+  elaborado_por: string | null;
   aprovado_por: string | null;
+  aprovado_por_nome: string | null;
   data_aprovacao: string | null;
   created_at: string;
   updated_at: string;
@@ -88,6 +90,7 @@ export function usePropostas() {
       cliente_id: string;
       obra_id: string;
       filial_id: string;
+      elaborado_por?: string;
       consideracoes_gerais?: string;
       consideracoes_pagamento?: string;
       dados_bancarios?: Record<string, string>;
@@ -106,6 +109,7 @@ export function usePropostas() {
           cliente_id: proposta.cliente_id,
           obra_id: proposta.obra_id,
           filial_id: proposta.filial_id,
+          elaborado_por: proposta.elaborado_por || null,
           consideracoes_gerais: proposta.consideracoes_gerais || null,
           consideracoes_pagamento: proposta.consideracoes_pagamento || null,
           dados_bancarios: proposta.dados_bancarios || {},
@@ -143,16 +147,29 @@ export function usePropostas() {
     }
   };
 
-  const atualizarStatus = async (id: string, status: string) => {
-    const updateData: any = { status };
-    if (status === 'aprovada_ceo') {
-      updateData.aprovado_por = user?.id;
-      updateData.data_aprovacao = new Date().toISOString();
-    }
-
+  const aprovarProposta = async (id: string, aprovadorNome: string) => {
     const { error } = await supabase
       .from('propostas')
-      .update(updateData)
+      .update({
+        status: 'aprovada',
+        aprovado_por: user?.id,
+        aprovado_por_nome: aprovadorNome,
+        data_aprovacao: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Erro ao aprovar proposta');
+    } else {
+      toast.success('Proposta aprovada!');
+      fetchPropostas();
+    }
+  };
+
+  const atualizarStatus = async (id: string, status: string) => {
+    const { error } = await supabase
+      .from('propostas')
+      .update({ status })
       .eq('id', id);
 
     if (error) {
@@ -173,20 +190,6 @@ export function usePropostas() {
     }
   };
 
-  const fetchPropostasPorObra = async (obraId: string) => {
-    const { data, error } = await supabase
-      .from('propostas')
-      .select('*, clientes(nome), obras(nome, referencia)')
-      .eq('obra_id', obraId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return [];
-    }
-    return (data as any[]) || [];
-  };
-
   useEffect(() => {
     fetchPropostas();
   }, []);
@@ -197,8 +200,8 @@ export function usePropostas() {
     fetchPropostas,
     fetchPropostaComItens,
     criarProposta,
+    aprovarProposta,
     atualizarStatus,
     excluirProposta,
-    fetchPropostasPorObra,
   };
 }
