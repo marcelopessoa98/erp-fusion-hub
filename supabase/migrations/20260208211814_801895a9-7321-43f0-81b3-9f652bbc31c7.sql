@@ -1,0 +1,1 @@
+ALTER TABLE public.servicos_extras ADD COLUMN valor numeric NOT NULL DEFAULT 0;

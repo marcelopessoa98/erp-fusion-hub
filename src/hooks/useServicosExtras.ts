@@ -11,6 +11,7 @@ export interface ServicoExtra {
   descricao_servico: string;
   status_pagamento: 'pago' | 'pendente';
   status_servico: 'pendente' | 'finalizado';
+  valor: number;
   data_recebimento: string;
   user_id: string | null;
   usuario_nome: string;

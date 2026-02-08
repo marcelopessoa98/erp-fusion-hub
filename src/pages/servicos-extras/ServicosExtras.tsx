@@ -74,6 +74,7 @@ export default function ServicosExtras() {
     material_recebido: '',
     descricao_servico: '',
     status_pagamento: 'pendente' as 'pago' | 'pendente',
+    valor: '',
     data_recebimento: formatDateToString(new Date()),
   });
 
@@ -126,6 +127,7 @@ export default function ServicosExtras() {
       material_recebido: '',
       descricao_servico: '',
       status_pagamento: 'pendente',
+      valor: '',
       data_recebimento: formatDateToString(new Date()),
     });
   };
@@ -142,6 +144,7 @@ export default function ServicosExtras() {
 
     await createServico.mutateAsync({
       ...formData,
+      valor: formData.valor ? parseFloat(String(formData.valor)) : 0,
       status_servico: 'pendente',
       user_id: user?.id || null,
       usuario_nome: profile?.nome || 'Usuário',
@@ -311,8 +314,21 @@ export default function ServicosExtras() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <Label className="text-sm">Status de Pagamento</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Valor do Serviço (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.valor}
+                      onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                      placeholder="0,00"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm">Status de Pagamento</Label>
                   <Select
                     value={formData.status_pagamento}
                     onValueChange={(v) => setFormData({ ...formData, status_pagamento: v as 'pago' | 'pendente' })}
@@ -324,7 +340,8 @@ export default function ServicosExtras() {
                       <SelectItem value="pago">Pago no Recebimento</SelectItem>
                       <SelectItem value="pendente">Pendente de Pagamento</SelectItem>
                     </SelectContent>
-                  </Select>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="text-xs text-muted-foreground">
@@ -450,6 +467,7 @@ export default function ServicosExtras() {
                     <TableHead>Cliente</TableHead>
                     <TableHead>Obra</TableHead>
                     <TableHead>Serviço</TableHead>
+                    <TableHead>Valor</TableHead>
                     <TableHead>Pagamento</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Registrado por</TableHead>
@@ -467,6 +485,9 @@ export default function ServicosExtras() {
                       <TableCell>{servico.obra?.nome}</TableCell>
                       <TableCell className="max-w-[200px] truncate" title={servico.descricao_servico}>
                         {servico.descricao_servico}
+                      </TableCell>
+                      <TableCell>
+                        {Number(servico.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </TableCell>
                       <TableCell>{getStatusPagamentoBadge(servico.status_pagamento)}</TableCell>
                       <TableCell>{getStatusServicoBadge(servico.status_servico)}</TableCell>
@@ -523,6 +544,9 @@ export default function ServicosExtras() {
                 </div>
                 <div>
                   <strong>Pagamento:</strong> {getStatusPagamentoBadge(selectedServico.status_pagamento)}
+                </div>
+                <div>
+                  <strong>Valor:</strong> {Number(selectedServico.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </div>
               </div>
               <div className="text-sm">
