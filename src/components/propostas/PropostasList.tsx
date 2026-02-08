@@ -29,8 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { FileDown, CheckCircle, Trash2, Eye, Search } from 'lucide-react';
-import { gerarPropostaPDF } from './PropostaPDF';
+import { CheckCircle, Trash2, Eye, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface PropostasListProps {
@@ -64,7 +63,6 @@ export function PropostasList({
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [gerando, setGerando] = useState<string | null>(null);
 
   const filtered = propostas.filter((p) => {
     const matchSearch =
@@ -75,18 +73,6 @@ export function PropostasList({
     const matchStatus = statusFilter === 'todos' || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
-
-  const handleGerarPDF = async (id: string) => {
-    setGerando(id);
-    try {
-      const proposta = await fetchComItens(id);
-      await gerarPropostaPDF(proposta);
-    } catch (err) {
-      console.error('Erro ao gerar PDF:', err);
-    } finally {
-      setGerando(null);
-    }
-  };
 
   const handleAprovar = async (id: string) => {
     const nome = profile?.nome || 'Administrador';
@@ -176,11 +162,10 @@ export function PropostasList({
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleGerarPDF(p.id)}
-                            disabled={gerando === p.id}
-                            title="Gerar PDF"
+                            onClick={() => onVerDetalhes(p.id)}
+                            title="Ver / Gerar PDF"
                           >
-                            <FileDown className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-primary" />
                           </Button>
                         )}
 
