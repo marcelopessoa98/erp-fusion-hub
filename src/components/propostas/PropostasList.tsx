@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CheckCircle, Trash2, Eye, Search } from 'lucide-react';
+import { CheckCircle, Trash2, Eye, Search, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface PropostasListProps {
@@ -39,6 +39,7 @@ interface PropostasListProps {
   onAtualizarStatus: (id: string, status: string) => Promise<void>;
   onExcluir: (id: string) => Promise<void>;
   onVerDetalhes: (id: string) => void;
+  onEditar: (id: string) => void;
   fetchComItens: (id: string) => Promise<Proposta>;
 }
 
@@ -57,6 +58,7 @@ export function PropostasList({
   onAtualizarStatus,
   onExcluir,
   onVerDetalhes,
+  onEditar,
   fetchComItens,
 }: PropostasListProps) {
   const { isAdmin, profile } = useAuth();
@@ -147,6 +149,12 @@ export function PropostasList({
                           <Eye className="h-4 w-4" />
                         </Button>
 
+                        {(p.status === 'rascunho' || p.status === 'pendente') && (
+                          <Button variant="ghost" size="icon" onClick={() => onEditar(p.id)} title="Editar proposta">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+
                         {(p.status === 'rascunho' || p.status === 'pendente') && isAdmin && (
                           <Button
                             variant="ghost"
@@ -157,7 +165,6 @@ export function PropostasList({
                             <CheckCircle className="h-4 w-4 text-primary" />
                           </Button>
                         )}
-
 
                         {(p.status === 'rascunho' || isAdmin) && (
                           <Button
