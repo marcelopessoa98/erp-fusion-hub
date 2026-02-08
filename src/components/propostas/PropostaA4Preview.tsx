@@ -2,8 +2,8 @@ import { forwardRef } from 'react';
 import { Proposta } from '@/hooks/usePropostas';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import headerImg from '@/assets/proposta-header.png';
-import footerImg from '@/assets/proposta-footer.png';
+import page1Bg from '@/assets/proposta-page1-bg.jpg';
+import page2Bg from '@/assets/proposta-page2-bg.jpg';
 import assinaturaImg from '@/assets/proposta-assinatura.jpg';
 
 interface PropostaA4PreviewProps {
@@ -12,32 +12,28 @@ interface PropostaA4PreviewProps {
 
 const PAGE_STYLE: React.CSSProperties = {
   width: '210mm',
-  minHeight: '297mm',
+  height: '297mm',
   position: 'relative',
-  background: '#fff',
+  backgroundSize: '100% 100%',
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'center',
   fontFamily: "'Times New Roman', Times, serif",
   fontSize: '11px',
   lineHeight: 1.5,
   color: '#000',
   pageBreakAfter: 'always',
   boxSizing: 'border-box',
+  overflow: 'hidden',
 };
 
+/* Content area sits below the header graphic and above the footer */
 const CONTENT_STYLE: React.CSSProperties = {
-  padding: '12mm 22mm 38mm 22mm',
-};
-
-const HEADER_STYLE: React.CSSProperties = {
-  width: '100%',
-  display: 'block',
-};
-
-const FOOTER_STYLE: React.CSSProperties = {
   position: 'absolute',
-  bottom: 0,
-  left: 0,
-  width: '100%',
-  display: 'block',
+  top: '52mm',      /* below the header/logo area */
+  left: '22mm',
+  right: '22mm',
+  bottom: '52mm',   /* above the footer area */
+  overflow: 'hidden',
 };
 
 export const PropostaA4Preview = forwardRef<HTMLDivElement, PropostaA4PreviewProps>(
@@ -47,11 +43,10 @@ export const PropostaA4Preview = forwardRef<HTMLDivElement, PropostaA4PreviewPro
     return (
       <div ref={ref} className="proposta-print-root">
         {/* ═══ PAGE 1 ═══ */}
-        <div style={PAGE_STYLE}>
-          <img src={headerImg} alt="" style={HEADER_STYLE} />
+        <div style={{ ...PAGE_STYLE, backgroundImage: `url(${page1Bg})` }}>
           <div style={CONTENT_STYLE}>
             {/* INFO */}
-            <table style={{ width: '100%', fontSize: '10px', marginBottom: '6mm', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', fontSize: '10px', marginBottom: '5mm', borderCollapse: 'collapse' }}>
               <tbody>
                 <tr>
                   <td style={{ padding: '2px 0' }}><strong>Proposta:</strong> {proposta.numero}</td>
@@ -152,12 +147,10 @@ export const PropostaA4Preview = forwardRef<HTMLDivElement, PropostaA4PreviewPro
               <strong>Validade da Proposta:</strong> {proposta.validade_dias} dias
             </p>
           </div>
-          <img src={footerImg} alt="" style={FOOTER_STYLE} />
         </div>
 
         {/* ═══ PAGE 2 ═══ */}
-        <div style={{ ...PAGE_STYLE, pageBreakAfter: 'auto' }}>
-          <img src={headerImg} alt="" style={HEADER_STYLE} />
+        <div style={{ ...PAGE_STYLE, pageBreakAfter: 'auto', backgroundImage: `url(${page2Bg})` }}>
           <div style={CONTENT_STYLE}>
             {/* ACEITE */}
             <SectionTitle>ACEITE DA PROPOSTA</SectionTitle>
@@ -171,17 +164,7 @@ export const PropostaA4Preview = forwardRef<HTMLDivElement, PropostaA4PreviewPro
               <p style={{ fontSize: '9px', color: '#666', marginTop: '1mm' }}>Assinatura do responsável pela autorização</p>
             </div>
             <p style={{ fontSize: '10px', marginBottom: '15mm' }}>Data: _____/_____/_______</p>
-
-            {/* ASSINATURA CONCREFUJI */}
-            <div style={{ marginTop: '20mm' }}>
-              <p style={{ fontWeight: 'bold', fontSize: '12px' }}>CONCREFUJI TECNOLOGIA</p>
-              <p style={{ fontWeight: 'bold' }}>RAFAELA FUJITA LIMA</p>
-              <p style={{ fontSize: '10px' }}>Engenheira Responsável</p>
-              <p style={{ fontSize: '10px' }}>CREA nº 12.208-D</p>
-              <img src={assinaturaImg} alt="Assinatura" style={{ width: '50mm', marginTop: '3mm' }} />
-            </div>
           </div>
-          <img src={footerImg} alt="" style={FOOTER_STYLE} />
         </div>
 
         <style>{`
