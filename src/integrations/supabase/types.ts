@@ -1268,6 +1268,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           usuario_nome: string
+          valor: number
         }
         Insert: {
           cliente_id: string
@@ -1283,6 +1284,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           usuario_nome: string
+          valor?: number
         }
         Update: {
           cliente_id?: string
@@ -1298,6 +1300,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           usuario_nome?: string
+          valor?: number
         }
         Relationships: [
           {
