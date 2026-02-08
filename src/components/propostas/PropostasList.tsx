@@ -176,7 +176,7 @@ export function PropostasList({
                           </Button>
                         )}
 
-                        {p.status === 'aprovada_ceo' && (
+                        {(p.status === 'aprovada_ceo' || p.status === 'enviada') && (
                           <Button
                             variant="ghost"
                             size="icon"
