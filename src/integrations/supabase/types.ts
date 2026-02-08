@@ -1114,6 +1114,7 @@ export type Database = {
       propostas: {
         Row: {
           aprovado_por: string | null
+          aprovado_por_nome: string | null
           assunto: string
           cliente_id: string
           consideracoes_gerais: string | null
@@ -1121,6 +1122,7 @@ export type Database = {
           created_at: string
           dados_bancarios: Json | null
           data_aprovacao: string | null
+          elaborado_por: string | null
           filial_id: string
           id: string
           numero: string
@@ -1133,6 +1135,7 @@ export type Database = {
         }
         Insert: {
           aprovado_por?: string | null
+          aprovado_por_nome?: string | null
           assunto: string
           cliente_id: string
           consideracoes_gerais?: string | null
@@ -1140,6 +1143,7 @@ export type Database = {
           created_at?: string
           dados_bancarios?: Json | null
           data_aprovacao?: string | null
+          elaborado_por?: string | null
           filial_id: string
           id?: string
           numero: string
@@ -1152,6 +1156,7 @@ export type Database = {
         }
         Update: {
           aprovado_por?: string | null
+          aprovado_por_nome?: string | null
           assunto?: string
           cliente_id?: string
           consideracoes_gerais?: string | null
@@ -1159,6 +1164,7 @@ export type Database = {
           created_at?: string
           dados_bancarios?: Json | null
           data_aprovacao?: string | null
+          elaborado_por?: string | null
           filial_id?: string
           id?: string
           numero?: string

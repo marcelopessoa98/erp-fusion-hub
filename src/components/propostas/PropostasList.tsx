@@ -29,13 +29,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { FileDown, CheckCircle, Send, Trash2, Eye, Search } from 'lucide-react';
+import { FileDown, CheckCircle, Trash2, Eye, Search } from 'lucide-react';
 import { gerarPropostaPDF } from './PropostaPDF';
 import { format } from 'date-fns';
 
 interface PropostasListProps {
   propostas: Proposta[];
   loading: boolean;
+  onAprovar: (id: string, aprovadorNome: string) => Promise<void>;
   onAtualizarStatus: (id: string, status: string) => Promise<void>;
   onExcluir: (id: string) => Promise<void>;
   onVerDetalhes: (id: string) => void;
@@ -44,8 +45,8 @@ interface PropostasListProps {
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   rascunho: { label: 'Rascunho', variant: 'secondary' },
-  aguardando_ceo: { label: 'Aguardando CEO', variant: 'outline' },
-  aprovada_ceo: { label: 'Aprovada CEO', variant: 'default' },
+  pendente: { label: 'Pendente', variant: 'outline' },
+  aprovada: { label: 'Aprovada', variant: 'default' },
   enviada: { label: 'Enviada', variant: 'default' },
   cancelada: { label: 'Cancelada', variant: 'destructive' },
 };
@@ -53,12 +54,13 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 export function PropostasList({
   propostas,
   loading,
+  onAprovar,
   onAtualizarStatus,
   onExcluir,
   onVerDetalhes,
   fetchComItens,
 }: PropostasListProps) {
-  const { isAdmin, isGerente } = useAuth();
+  const { isAdmin, profile } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -86,6 +88,11 @@ export function PropostasList({
     }
   };
 
+  const handleAprovar = async (id: string) => {
+    const nome = profile?.nome || 'Administrador';
+    await onAprovar(id, nome);
+  };
+
   if (loading) {
     return <div className="text-center py-8 text-muted-foreground">Carregando propostas...</div>;
   }
@@ -109,8 +116,8 @@ export function PropostasList({
           <SelectContent>
             <SelectItem value="todos">Todos os status</SelectItem>
             <SelectItem value="rascunho">Rascunho</SelectItem>
-            <SelectItem value="aguardando_ceo">Aguardando CEO</SelectItem>
-            <SelectItem value="aprovada_ceo">Aprovada CEO</SelectItem>
+            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="aprovada">Aprovada</SelectItem>
             <SelectItem value="enviada">Enviada</SelectItem>
             <SelectItem value="cancelada">Cancelada</SelectItem>
           </SelectContent>
@@ -129,7 +136,7 @@ export function PropostasList({
                 <TableHead>Número</TableHead>
                 <TableHead>Assunto</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Obra</TableHead>
+                <TableHead>Elaborado por</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -143,7 +150,7 @@ export function PropostasList({
                     <TableCell className="font-mono text-sm">{p.numero}</TableCell>
                     <TableCell>{p.assunto}</TableCell>
                     <TableCell>{p.clientes?.nome}</TableCell>
-                    <TableCell>{p.obras?.nome}</TableCell>
+                    <TableCell className="text-sm">{p.elaborado_por || '—'}</TableCell>
                     <TableCell>
                       <Badge variant={cfg.variant}>{cfg.label}</Badge>
                     </TableCell>
@@ -154,29 +161,18 @@ export function PropostasList({
                           <Eye className="h-4 w-4" />
                         </Button>
 
-                        {p.status === 'rascunho' && (
+                        {(p.status === 'rascunho' || p.status === 'pendente') && isAdmin && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => onAtualizarStatus(p.id, 'aguardando_ceo')}
-                            title="Enviar para validação CEO"
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        )}
-
-                        {p.status === 'aguardando_ceo' && isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onAtualizarStatus(p.id, 'aprovada_ceo')}
-                            title="Aprovar (CEO)"
+                            onClick={() => handleAprovar(p.id)}
+                            title="Aprovar proposta"
                           >
                             <CheckCircle className="h-4 w-4 text-primary" />
                           </Button>
                         )}
 
-                        {(p.status === 'aprovada_ceo' || p.status === 'enviada') && (
+                        {(p.status === 'aprovada' || p.status === 'enviada') && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -184,7 +180,7 @@ export function PropostasList({
                             disabled={gerando === p.id}
                             title="Gerar PDF"
                           >
-                            <FileDown className="h-4 w-4 text-accent-foreground" />
+                            <FileDown className="h-4 w-4" />
                           </Button>
                         )}
 
