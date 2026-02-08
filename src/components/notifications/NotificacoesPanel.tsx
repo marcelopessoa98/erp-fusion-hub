@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Bell, Cake, Calendar, Clock, DollarSign } from 'lucide-react';
+import { Bell, Cake, Calendar, Clock, DollarSign, FileWarning } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -14,7 +14,7 @@ import { format, subMonths } from 'date-fns';
 
 interface Notification {
   id: string;
-  type: 'aniversario' | 'agendamento' | 'horas_extras' | 'servico_extra';
+  type: 'aniversario' | 'agendamento' | 'horas_extras' | 'servico_extra' | 'documento_vencendo';
   title: string;
   description: string;
   icon: React.ElementType;
@@ -131,6 +131,41 @@ export function NotificacoesPanel() {
             description: `${s.clientes?.nome || 'Cliente'} - ${s.descricao_servico?.substring(0, 50)}`,
             icon: DollarSign,
           });
+        });
+      }
+
+      // 5. Documentos de funcionários vencendo em 17 dias ou vencidos
+      const { data: docsVencendo } = await supabase
+        .from('documentos_funcionarios')
+        .select('id, tipo_documento, nome_documento, data_validade, funcionarios(nome)')
+        .not('data_validade', 'is', null);
+
+      if (docsVencendo) {
+        const hojeMs = hoje.getTime();
+        docsVencendo.forEach((doc: any) => {
+          if (!doc.data_validade) return;
+          const [y, m, d] = doc.data_validade.split('-').map(Number);
+          const validade = new Date(y, m - 1, d);
+          const diasRestantes = Math.ceil((validade.getTime() - hojeMs) / (1000 * 60 * 60 * 24));
+          const nomeFunc = doc.funcionarios?.nome || 'Funcionário';
+
+          if (diasRestantes < 0) {
+            notifs.push({
+              id: `doc-venc-${doc.id}`,
+              type: 'documento_vencendo',
+              title: '🚨 Documento vencido',
+              description: `${nomeFunc}: ${doc.nome_documento} venceu há ${Math.abs(diasRestantes)} dia(s)`,
+              icon: FileWarning,
+            });
+          } else if (diasRestantes <= 17) {
+            notifs.push({
+              id: `doc-av-${doc.id}`,
+              type: 'documento_vencendo',
+              title: '📋 Documento a vencer',
+              description: `${nomeFunc}: ${doc.nome_documento} vence em ${diasRestantes} dia(s)`,
+              icon: FileWarning,
+            });
+          }
         });
       }
     } catch (error) {
