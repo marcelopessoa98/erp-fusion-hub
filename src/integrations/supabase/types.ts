@@ -1070,6 +1070,129 @@ export type Database = {
         }
         Relationships: []
       }
+      proposta_itens: {
+        Row: {
+          created_at: string
+          descricao: string
+          detalhes: string | null
+          id: string
+          ordem: number
+          proposta_id: string
+          unidade: string | null
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          detalhes?: string | null
+          id?: string
+          ordem?: number
+          proposta_id: string
+          unidade?: string | null
+          valor_unitario?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          detalhes?: string | null
+          id?: string
+          ordem?: number
+          proposta_id?: string
+          unidade?: string | null
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposta_itens_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "propostas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      propostas: {
+        Row: {
+          aprovado_por: string | null
+          assunto: string
+          cliente_id: string
+          consideracoes_gerais: string | null
+          consideracoes_pagamento: string | null
+          created_at: string
+          dados_bancarios: Json | null
+          data_aprovacao: string | null
+          filial_id: string
+          id: string
+          numero: string
+          obra_id: string
+          observacoes: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          validade_dias: number
+        }
+        Insert: {
+          aprovado_por?: string | null
+          assunto: string
+          cliente_id: string
+          consideracoes_gerais?: string | null
+          consideracoes_pagamento?: string | null
+          created_at?: string
+          dados_bancarios?: Json | null
+          data_aprovacao?: string | null
+          filial_id: string
+          id?: string
+          numero: string
+          obra_id: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          validade_dias?: number
+        }
+        Update: {
+          aprovado_por?: string | null
+          assunto?: string
+          cliente_id?: string
+          consideracoes_gerais?: string | null
+          consideracoes_pagamento?: string | null
+          created_at?: string
+          dados_bancarios?: Json | null
+          data_aprovacao?: string | null
+          filial_id?: string
+          id?: string
+          numero?: string
+          obra_id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          validade_dias?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ranking_funcionario_mes: {
         Row: {
           ano: number
@@ -1383,6 +1506,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      gerar_numero_proposta: { Args: never; Returns: string }
       has_filial_access: {
         Args: { _filial_id: string; _user_id: string }
         Returns: boolean
