@@ -359,6 +359,120 @@ export type Database = {
         }
         Relationships: []
       }
+      contrato_config_itens: {
+        Row: {
+          contrato_config_id: string
+          created_at: string
+          descricao: string
+          id: string
+          item_numero: string
+          ordem: number
+          quantidade: number
+          unidade: string
+          valor_unitario: number
+        }
+        Insert: {
+          contrato_config_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          item_numero?: string
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+          valor_unitario?: number
+        }
+        Update: {
+          contrato_config_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          item_numero?: string
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_config_itens_contrato_config_id_fkey"
+            columns: ["contrato_config_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_config: {
+        Row: {
+          cliente_id: string
+          contratado_cnpj: string
+          contratado_nome: string
+          contratante_cnpj: string
+          contratante_nome: string
+          created_at: string
+          filial_id: string
+          id: string
+          numero_proposta: string | null
+          obra_id: string
+          servicos_descricao: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cliente_id: string
+          contratado_cnpj?: string
+          contratado_nome?: string
+          contratante_cnpj?: string
+          contratante_nome?: string
+          created_at?: string
+          filial_id: string
+          id?: string
+          numero_proposta?: string | null
+          obra_id: string
+          servicos_descricao?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          contratado_cnpj?: string
+          contratado_nome?: string
+          contratante_cnpj?: string
+          contratante_nome?: string
+          created_at?: string
+          filial_id?: string
+          id?: string
+          numero_proposta?: string | null
+          obra_id?: string
+          servicos_descricao?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_config_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_config_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_config_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: true
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_funcionarios: {
         Row: {
           created_at: string
@@ -554,6 +668,7 @@ export type Database = {
           funcionario_id: string
           horas: number
           id: string
+          medido: boolean
           obra_id: string | null
           observacao: string | null
           tipo: string
@@ -569,6 +684,7 @@ export type Database = {
           funcionario_id: string
           horas: number
           id?: string
+          medido?: boolean
           obra_id?: string | null
           observacao?: string | null
           tipo?: string
@@ -584,6 +700,7 @@ export type Database = {
           funcionario_id?: string
           horas?: number
           id?: string
+          medido?: boolean
           obra_id?: string | null
           observacao?: string | null
           tipo?: string
@@ -1262,6 +1379,7 @@ export type Database = {
           filial_id: string
           id: string
           material_recebido: string
+          medido: boolean
           obra_id: string
           status_pagamento: string
           status_servico: string
@@ -1278,6 +1396,7 @@ export type Database = {
           filial_id: string
           id?: string
           material_recebido: string
+          medido?: boolean
           obra_id: string
           status_pagamento?: string
           status_servico?: string
@@ -1294,6 +1413,7 @@ export type Database = {
           filial_id?: string
           id?: string
           material_recebido?: string
+          medido?: boolean
           obra_id?: string
           status_pagamento?: string
           status_servico?: string
