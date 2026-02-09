@@ -30,6 +30,7 @@ import ServicosExtras from "./pages/servicos-extras/ServicosExtras";
 import Usuarios from "./pages/admin/Usuarios";
 import DocumentacaoFuncionarios from "./pages/cadastros/DocumentacaoFuncionarios";
 import Medicoes from "./pages/financeiro/Medicoes";
+import ContratosConfig from "./pages/financeiro/ContratosConfig";
 import Propostas from "./pages/financeiro/Propostas";
 import SolicitacoesCompras from "./pages/financeiro/SolicitacoesCompras";
 import NotFound from "./pages/NotFound";
@@ -264,6 +265,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <Medicoes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/financeiro/contratos"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ContratosConfig />
             </AppLayout>
           </ProtectedRoute>
         }

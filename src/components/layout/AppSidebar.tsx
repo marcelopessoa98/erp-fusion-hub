@@ -61,6 +61,7 @@ const cadastrosItems = [
 ];
 
 const financeiroItems = [
+  { title: 'Contratos/Config', url: '/financeiro/contratos', icon: FileText },
   { title: 'Medições', url: '/financeiro/medicoes', icon: ClipboardList },
   { title: 'Propostas', url: '/financeiro/propostas', icon: FileSignature },
   { title: 'Compras', url: '/financeiro/compras', icon: ShoppingCart },
