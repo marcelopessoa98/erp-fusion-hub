@@ -225,11 +225,11 @@ export default function ServicosExtras() {
               Novo Serviço
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
-            <DialogHeader className="flex-shrink-0">
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
               <DialogTitle>Novo Serviço Extra</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="flex-1 pr-4">
+            <div className="max-h-[65vh] overflow-y-auto pr-2">
               <div className="grid gap-3 py-2">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -348,8 +348,8 @@ export default function ServicosExtras() {
                   Registrado por: <strong>{profile?.nome || 'Usuário'}</strong>
                 </div>
               </div>
-            </ScrollArea>
-            <DialogFooter className="flex-shrink-0 pt-4 border-t">
+            </div>
+            <DialogFooter className="pt-4 border-t">
               <Button variant="outline" size="sm" onClick={() => setIsNewDialogOpen(false)}>Cancelar</Button>
               <Button size="sm" onClick={handleSubmit} disabled={createServico.isPending}>
                 {createServico.isPending ? 'Salvando...' : 'Salvar'}
