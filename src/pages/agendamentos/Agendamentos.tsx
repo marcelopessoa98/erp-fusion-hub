@@ -11,6 +11,7 @@ import {
   useAgendamentosNotificacoes,
   useCreateAgendamento,
   useUpdateAgendamento,
+  useDeleteAgendamento,
   Agendamento,
   AgendamentoFormData,
 } from '@/hooks/useAgendamentos';
@@ -26,6 +27,7 @@ export default function Agendamentos() {
   const { data: notificacoes } = useAgendamentosNotificacoes();
   const createAgendamento = useCreateAgendamento();
   const updateAgendamento = useUpdateAgendamento();
+  const deleteAgendamento = useDeleteAgendamento();
 
   const handleNewAgendamento = () => {
     setEditingAgendamento(null);
@@ -114,6 +116,7 @@ export default function Agendamentos() {
           selectedDate={selectedDate}
           onDateSelect={setSelectedDate}
           onAgendamentoEdit={handleEditAgendamento}
+          onAgendamentoDelete={(id) => deleteAgendamento.mutate(id)}
         />
       )}
 
