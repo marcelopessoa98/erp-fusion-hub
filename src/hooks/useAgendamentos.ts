@@ -229,6 +229,44 @@ export function useUpdateAgendamento() {
   });
 }
 
+export function useDeleteAgendamento() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Delete responsaveis first
+      await supabase
+        .from('agendamento_responsaveis')
+        .delete()
+        .eq('agendamento_id', id);
+
+      const { error } = await supabase
+        .from('agendamentos')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-notificacoes'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Agendamento excluído com sucesso!',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
 export function useMarkNotified() {
   const queryClient = useQueryClient();
 

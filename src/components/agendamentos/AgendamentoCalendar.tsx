@@ -4,16 +4,28 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Agendamento } from '@/hooks/useAgendamentos';
-import { Edit, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AgendamentoCalendarProps {
   agendamentos: Agendamento[];
   onDateSelect?: (date: Date) => void;
   onAgendamentoEdit?: (agendamento: Agendamento) => void;
+  onAgendamentoDelete?: (id: string) => void;
   selectedDate?: Date;
 }
 
@@ -21,6 +33,7 @@ export function AgendamentoCalendar({
   agendamentos,
   onDateSelect,
   onAgendamentoEdit,
+  onAgendamentoDelete,
   selectedDate,
 }: AgendamentoCalendarProps) {
   const [month, setMonth] = useState<Date>(new Date());
@@ -232,17 +245,42 @@ export function AgendamentoCalendar({
                       )}
                     </div>
 
-                    {onAgendamentoEdit && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full mt-2"
-                        onClick={() => onAgendamentoEdit(agendamento)}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Editar
-                      </Button>
-                    )}
+                    <div className="flex gap-1 mt-2">
+                      {onAgendamentoEdit && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => onAgendamentoEdit(agendamento)}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Editar
+                        </Button>
+                      )}
+                      {onAgendamentoDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir agendamento?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. O agendamento de {agendamento.cliente?.nome} será removido permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onAgendamentoDelete(agendamento.id)}>
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </Card>
                 ))}
               </div>
