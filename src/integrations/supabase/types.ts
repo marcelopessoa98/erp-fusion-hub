@@ -192,38 +192,53 @@ export type Database = {
       }
       alugueis_obra: {
         Row: {
+          codigo_identificacao: string | null
           created_at: string
+          data_calibracao: string | null
+          data_entrega: string | null
           data_previsao_retorno: string | null
           data_saida: string
+          entregue_por: string | null
           id: string
           material_id: string
           obra_id: string
           observacao: string | null
           quantidade: number
+          recebido_por: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          codigo_identificacao?: string | null
           created_at?: string
+          data_calibracao?: string | null
+          data_entrega?: string | null
           data_previsao_retorno?: string | null
           data_saida?: string
+          entregue_por?: string | null
           id?: string
           material_id: string
           obra_id: string
           observacao?: string | null
           quantidade?: number
+          recebido_por?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          codigo_identificacao?: string | null
           created_at?: string
+          data_calibracao?: string | null
+          data_entrega?: string | null
           data_previsao_retorno?: string | null
           data_saida?: string
+          entregue_por?: string | null
           id?: string
           material_id?: string
           obra_id?: string
           observacao?: string | null
           quantidade?: number
+          recebido_por?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -777,32 +792,47 @@ export type Database = {
       }
       materiais_obra: {
         Row: {
+          codigo_identificacao: string | null
           created_at: string
+          data_calibracao: string | null
+          data_entrega: string | null
+          entregue_por: string | null
           id: string
           material_id: string
           obra_id: string
           observacao: string | null
           quantidade: number
+          recebido_por: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          codigo_identificacao?: string | null
           created_at?: string
+          data_calibracao?: string | null
+          data_entrega?: string | null
+          entregue_por?: string | null
           id?: string
           material_id: string
           obra_id: string
           observacao?: string | null
           quantidade?: number
+          recebido_por?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          codigo_identificacao?: string | null
           created_at?: string
+          data_calibracao?: string | null
+          data_entrega?: string | null
+          entregue_por?: string | null
           id?: string
           material_id?: string
           obra_id?: string
           observacao?: string | null
           quantidade?: number
+          recebido_por?: string | null
           updated_at?: string
           user_id?: string | null
         }
