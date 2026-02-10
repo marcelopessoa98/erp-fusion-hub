@@ -70,6 +70,7 @@ const financeiroItems = [
 const controleMateriais = [
   { title: 'Cadastrar Materiais', url: '/materiais/cadastro', icon: Package },
   { title: 'Materiais em Obra', url: '/materiais/em-obra', icon: Construction },
+  { title: 'Aluguéis em Obra', url: '/materiais/alugueis', icon: Clock },
   { title: 'Materiais em Estoque', url: '/materiais/estoque', icon: ArrowLeftRight },
 ];
 
