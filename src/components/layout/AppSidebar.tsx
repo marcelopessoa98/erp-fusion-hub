@@ -20,8 +20,6 @@ import {
   Users,
   HardHat,
   UserCog,
-  Package,
-  ArrowLeftRight,
   Clock,
   AlertTriangle,
   Trophy,
@@ -34,9 +32,7 @@ import {
   Building,
   UserPlus,
   CalendarDays,
-  DollarSign,
   Wrench,
-  Construction,
   FileText,
   ClipboardList,
   FileSignature,
@@ -67,12 +63,6 @@ const financeiroItems = [
   { title: 'Compras', url: '/financeiro/compras', icon: ShoppingCart },
 ];
 
-const controleMateriais = [
-  { title: 'Cadastrar Materiais', url: '/materiais/cadastro', icon: Package },
-  { title: 'Materiais em Obra', url: '/materiais/em-obra', icon: Construction },
-  { title: 'Aluguéis em Obra', url: '/materiais/alugueis', icon: Clock },
-  { title: 'Materiais em Estoque', url: '/materiais/estoque', icon: ArrowLeftRight },
-];
 
 const horasExtrasItems = [
   { title: 'Lançamentos', url: '/horas-extras/lancamentos', icon: Clock },
@@ -176,22 +166,6 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Controle de Materiais */}
-        <Collapsible defaultOpen={isActiveGroup(controleMateriais)} className="group/collapsible">
-          <SidebarGroup>
-            <CollapsibleTrigger asChild>
-              <SidebarGroupLabel className="cursor-pointer hover:bg-accent rounded-md px-3 py-2 flex items-center justify-between">
-                <span className={cn(collapsed && 'sr-only')}>Controle de Materiais</span>
-                {!collapsed && <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
-              </SidebarGroupLabel>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                {renderMenuItems(controleMateriais)}
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
 
         {/* Horas Extras */}
         <Collapsible defaultOpen={isActiveGroup(horasExtrasItems)} className="group/collapsible">

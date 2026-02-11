@@ -14,10 +14,6 @@ import Filiais from "./pages/cadastros/Filiais";
 import Clientes from "./pages/cadastros/Clientes";
 import Obras from "./pages/cadastros/Obras";
 import Funcionarios from "./pages/cadastros/Funcionarios";
-import Materiais from "./pages/estoque/Materiais";
-import MateriaisObra from "./pages/estoque/MateriaisObra";
-import AlugueisObra from "./pages/estoque/AlugueisObra";
-import Estoque from "./pages/estoque/Estoque";
 import Lancamentos from "./pages/horas-extras/Lancamentos";
 import Relatorios from "./pages/horas-extras/Relatorios";
 import Ocorrencias from "./pages/nao-conformidades/Ocorrencias";
@@ -107,47 +103,6 @@ const AppRoutes = () => {
         }
       />
       
-      {/* Controle de Materiais */}
-      <Route
-        path="/materiais/cadastro"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Materiais />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/materiais/em-obra"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <MateriaisObra />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/materiais/estoque"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Estoque />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/materiais/alugueis"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <AlugueisObra />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
       
       {/* Horas Extras */}
       <Route
