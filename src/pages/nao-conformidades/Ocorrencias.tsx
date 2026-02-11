@@ -30,7 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Search, AlertTriangle, CheckCircle, Clock, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, AlertTriangle, CheckCircle, Clock, Eye, Trash2, FileDown } from 'lucide-react';
+import { exportNCsPDF } from '@/lib/ncPdfExport';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -299,6 +300,11 @@ const Ocorrencias = () => {
           <h1 className="text-3xl font-bold tracking-tight">Ocorrências</h1>
           <p className="text-muted-foreground">Registre e gerencie não conformidades</p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => exportNCsPDF(filteredOcorrencias, 'Ocorrências - Não Conformidades')}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Exportar PDF
+          </Button>
         <Dialog
           open={dialogOpen}
           onOpenChange={(open) => {
@@ -461,6 +467,7 @@ const Ocorrencias = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Cards de resumo */}
