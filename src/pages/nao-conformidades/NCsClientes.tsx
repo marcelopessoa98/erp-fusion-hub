@@ -31,7 +31,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Users, Trash2 } from "lucide-react";
+import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Users, Trash2, FileDown } from "lucide-react";
+import { exportNCsPDF } from '@/lib/ncPdfExport';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -328,6 +329,11 @@ const NCsClientes = () => {
             Gerencie não conformidades relacionadas a clientes
           </p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => exportNCsPDF(filteredNCs, 'NCs de Clientes')}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Exportar PDF
+          </Button>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -497,6 +503,7 @@ const NCsClientes = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}

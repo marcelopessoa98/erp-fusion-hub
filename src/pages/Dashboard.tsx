@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Building2, Users, HardHat, UserCog, Package, AlertTriangle, Clock, TrendingUp } from 'lucide-react';
+import { Building2, Users, HardHat, UserCog, AlertTriangle, Clock, CalendarDays, FileWarning } from 'lucide-react';
 import { AniversariantesMes } from '@/components/dashboard/AniversariantesMes';
 
 interface DashboardStats {
@@ -11,10 +11,10 @@ interface DashboardStats {
   clientes: number;
   obras: number;
   funcionarios: number;
-  materiais: number;
+  agendamentosPendentes: number;
   ncAbertas: number;
   horasExtrasMes: number;
-  alugueisAtivos: number;
+  docIrregulares: number;
 }
 
 const Dashboard = () => {
@@ -24,32 +24,33 @@ const Dashboard = () => {
     clientes: 0,
     obras: 0,
     funcionarios: 0,
-    materiais: 0,
+    agendamentosPendentes: 0,
     ncAbertas: 0,
     horasExtrasMes: 0,
-    alugueisAtivos: 0,
+    docIrregulares: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        const hoje = new Date();
+        const hojeStr = hoje.toISOString().split('T')[0];
+
         const [
           { count: filiais },
           { count: clientes },
           { count: obras },
           { count: funcionarios },
-          { count: materiais },
+          { count: agendamentosPendentes },
           { count: ncAbertas },
-          { count: alugueisAtivos },
         ] = await Promise.all([
           supabase.from('filiais').select('*', { count: 'exact', head: true }).eq('ativa', true),
           supabase.from('clientes').select('*', { count: 'exact', head: true }).eq('ativo', true),
           supabase.from('obras').select('*', { count: 'exact', head: true }).eq('status', 'ativa'),
           supabase.from('funcionarios').select('*', { count: 'exact', head: true }).eq('ativo', true),
-          supabase.from('materiais').select('*', { count: 'exact', head: true }),
+          supabase.from('agendamentos').select('*', { count: 'exact', head: true }).eq('status', 'agendado').gte('data_concretagem', hojeStr),
           supabase.from('nao_conformidades').select('*', { count: 'exact', head: true }).eq('status', 'aberta'),
-          supabase.from('alugueis').select('*', { count: 'exact', head: true }).eq('status', 'ativo'),
         ]);
 
         // Horas extras do mês atual
@@ -64,15 +65,40 @@ const Dashboard = () => {
 
         const totalHoras = horasData?.reduce((acc, item) => acc + Number(item.horas), 0) || 0;
 
+        // Documentação irregular: funcionários com docs vencidos ou pendentes
+        const { data: allFuncs } = await supabase.from('funcionarios').select('id').eq('ativo', true);
+        const { data: allDocs } = await supabase.from('documentos_funcionarios').select('funcionario_id, data_validade, data_emissao, tipo_documento');
+
+        let docIrregulares = 0;
+        const tiposObrigatorios = ['registro_trabalho', 'ordem_servico', 'aso', 'nr_18', 'nr_12', 'nr_35', 'cartao_vacina'];
+        if (allFuncs) {
+          const docsMap = new Map<string, Map<string, any>>();
+          allDocs?.forEach((d) => {
+            if (!docsMap.has(d.funcionario_id)) docsMap.set(d.funcionario_id, new Map());
+            docsMap.get(d.funcionario_id)!.set(d.tipo_documento, d);
+          });
+          allFuncs.forEach((f) => {
+            const funcDocs = docsMap.get(f.id);
+            for (const tipo of tiposObrigatorios) {
+              const doc = funcDocs?.get(tipo);
+              if (!doc || !doc.data_emissao) { docIrregulares++; return; }
+              if (doc.data_validade) {
+                const val = new Date(doc.data_validade);
+                if (val < hoje) { docIrregulares++; return; }
+              }
+            }
+          });
+        }
+
         setStats({
           filiais: filiais || 0,
           clientes: clientes || 0,
           obras: obras || 0,
           funcionarios: funcionarios || 0,
-          materiais: materiais || 0,
+          agendamentosPendentes: agendamentosPendentes || 0,
           ncAbertas: ncAbertas || 0,
           horasExtrasMes: totalHoras,
-          alugueisAtivos: alugueisAtivos || 0,
+          docIrregulares,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -89,10 +115,10 @@ const Dashboard = () => {
     { title: 'Clientes', value: stats.clientes, icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
     { title: 'Obras em Andamento', value: stats.obras, icon: HardHat, color: 'text-yellow-600', bg: 'bg-yellow-100' },
     { title: 'Funcionários', value: stats.funcionarios, icon: UserCog, color: 'text-purple-600', bg: 'bg-purple-100' },
-    { title: 'Materiais Cadastrados', value: stats.materiais, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+    { title: 'Agendamentos Pendentes', value: stats.agendamentosPendentes, icon: CalendarDays, color: 'text-indigo-600', bg: 'bg-indigo-100' },
     { title: 'NC Abertas', value: stats.ncAbertas, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' },
     { title: 'Horas Extras (Mês)', value: `${stats.horasExtrasMes.toFixed(1)}h`, icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100' },
-    { title: 'Aluguéis Ativos', value: stats.alugueisAtivos, icon: TrendingUp, color: 'text-teal-600', bg: 'bg-teal-100' },
+    { title: 'Doc. Irregulares', value: stats.docIrregulares, icon: FileWarning, color: 'text-rose-600', bg: 'bg-rose-100' },
   ];
 
   return (
@@ -133,9 +159,9 @@ const Dashboard = () => {
             <CardDescription>Funcionalidades mais utilizadas</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <Link to="/materiais/em-obra" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-              <Package className="h-5 w-5 text-muted-foreground" />
-              <span>Materiais em Obra</span>
+            <Link to="/agendamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+              <CalendarDays className="h-5 w-5 text-muted-foreground" />
+              <span>Agendamentos</span>
             </Link>
             <Link to="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
               <Clock className="h-5 w-5 text-muted-foreground" />
@@ -165,11 +191,11 @@ const Dashboard = () => {
                 <div className="text-sm text-muted-foreground">Filiais, Clientes, Obras, Funcionários</div>
               </div>
             </Link>
-            <Link to="/materiais/cadastro" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-              <Package className="h-5 w-5 text-muted-foreground" />
+            <Link to="/agendamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+              <CalendarDays className="h-5 w-5 text-muted-foreground" />
               <div>
-                <div className="font-medium">Controle de Materiais</div>
-                <div className="text-sm text-muted-foreground">Cadastro, Obras, Estoque</div>
+                <div className="font-medium">Agendamentos</div>
+                <div className="text-sm text-muted-foreground">Concretagens e Programações</div>
               </div>
             </Link>
             <Link to="/horas-extras/lancamentos" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
