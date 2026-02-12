@@ -32,8 +32,7 @@ import {
 import { toast } from 'sonner';
 import { Plus, Search, AlertTriangle, CheckCircle, Clock, Eye, Trash2, FileDown } from 'lucide-react';
 import { exportNCsPDF } from '@/lib/ncPdfExport';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDateToString, formatDateBR } from '@/lib/dateUtils';
 
 interface Filial {
   id: string;
@@ -101,7 +100,7 @@ const Ocorrencias = () => {
     funcionario_id: '',
     cliente_id: '',
     obra_id: '',
-    data_ocorrencia: format(new Date(), 'yyyy-MM-dd'),
+    data_ocorrencia: formatDateToString(new Date()),
   });
 
   useEffect(() => {
@@ -153,7 +152,7 @@ const Ocorrencias = () => {
       funcionario_id: '',
       cliente_id: '',
       obra_id: '',
-      data_ocorrencia: format(new Date(), 'yyyy-MM-dd'),
+      data_ocorrencia: formatDateToString(new Date()),
     });
   };
 
@@ -209,7 +208,7 @@ const Ocorrencias = () => {
         .update({
           status: 'resolvida',
           acao_corretiva: acaoCorretiva,
-          data_resolucao: format(new Date(), 'yyyy-MM-dd'),
+          data_resolucao: formatDateToString(new Date()),
           resolvido_por: user?.id,
         })
         .eq('id', id);
@@ -567,7 +566,7 @@ const Ocorrencias = () => {
                 {filteredOcorrencias.map((oc) => (
                   <TableRow key={oc.id}>
                     <TableCell>
-                      {format(new Date(oc.data_ocorrencia), 'dd/MM/yyyy', { locale: ptBR })}
+                      {formatDateBR(oc.data_ocorrencia)}
                     </TableCell>
                     <TableCell className="font-medium max-w-[200px] truncate">
                       {oc.titulo}

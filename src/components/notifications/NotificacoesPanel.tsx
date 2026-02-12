@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Bell, Cake, Calendar, Clock, DollarSign, FileWarning } from 'lucide-react';
+import { Bell, Cake, Calendar, Clock, DollarSign, FileWarning, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -14,7 +14,7 @@ import { format, subMonths } from 'date-fns';
 
 interface Notification {
   id: string;
-  type: 'aniversario' | 'agendamento' | 'horas_extras' | 'servico_extra' | 'documento_vencendo';
+  type: 'aniversario' | 'agendamento' | 'horas_extras' | 'servico_extra' | 'documento_vencendo' | 'nc_repetida';
   title: string;
   description: string;
   icon: React.ElementType;
@@ -164,6 +164,39 @@ export function NotificacoesPanel() {
               title: '📋 Documento a vencer',
               description: `${nomeFunc}: ${doc.nome_documento} vence em ${diasRestantes} dia(s)`,
               icon: FileWarning,
+            });
+          }
+        });
+      }
+
+      // 6. NCs repetidas do mesmo tipo pelo mesmo funcionário ou cliente
+      const { data: ncsRepetidas } = await supabase
+        .from('nao_conformidades')
+        .select('tipo_nc_id, funcionario_id, cliente_id, tipo, funcionarios(nome), clientes(nome), tipos_nc:tipos_nc(nome)')
+        .not('tipo_nc_id', 'is', null);
+
+      if (ncsRepetidas) {
+        const agrupado: Record<string, { count: number; nome: string; tipoNome: string }> = {};
+        ncsRepetidas.forEach((nc: any) => {
+          const entityId = nc.funcionario_id || nc.cliente_id;
+          if (!entityId) return;
+          const key = `${nc.tipo_nc_id}-${entityId}`;
+          if (!agrupado[key]) {
+            const entityNome = nc.funcionarios?.nome || nc.clientes?.nome || 'Desconhecido';
+            const tipoNome = nc.tipos_nc?.nome || 'Tipo desconhecido';
+            agrupado[key] = { count: 0, nome: entityNome, tipoNome };
+          }
+          agrupado[key].count++;
+        });
+
+        Object.entries(agrupado).forEach(([key, data]) => {
+          if (data.count > 1) {
+            notifs.push({
+              id: `nc-rep-${key}`,
+              type: 'nc_repetida',
+              title: '⚠️ NC repetida',
+              description: `${data.nome}: "${data.tipoNome}" (${data.count}x)`,
+              icon: AlertTriangle,
             });
           }
         });
