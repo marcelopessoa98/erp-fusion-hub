@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Bell, Cake, Calendar, Clock, DollarSign, FileWarning, AlertTriangle } from 'lucide-react';
+import { Bell, Cake, Calendar, Clock, DollarSign, FileWarning, AlertTriangle, Eye, Trash2, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Popover,
   PopoverContent,
@@ -11,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, subMonths } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface Notification {
   id: string;
@@ -18,13 +18,16 @@ interface Notification {
   title: string;
   description: string;
   icon: React.ElementType;
+  link?: string;
 }
 
-const LIMITE_HORAS_EXTRAS_MES = 44; // CLT limit
+const LIMITE_HORAS_EXTRAS_MES = 44;
 
 export function NotificacoesPanel() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNotifications();
@@ -56,6 +59,7 @@ export function NotificacoesPanel() {
                 title: '🎂 Aniversariante do dia',
                 description: f.nome,
                 icon: Cake,
+                link: '/cadastros/funcionarios',
               });
             }
           }
@@ -78,6 +82,7 @@ export function NotificacoesPanel() {
             title: '📅 Agendamento hoje',
             description: `${a.obras?.nome || 'Obra'} - ${a.clientes?.nome || 'Cliente'} (${a.volume}m³)`,
             icon: Calendar,
+            link: '/agendamentos',
           });
         });
       }
@@ -109,6 +114,7 @@ export function NotificacoesPanel() {
               title: '⚠️ Limite de HE atingido',
               description: `${data.nome}: ${data.total.toFixed(1)}h (limite: ${LIMITE_HORAS_EXTRAS_MES}h)`,
               icon: Clock,
+              link: '/horas-extras/lancamentos',
             });
           }
         });
@@ -130,6 +136,7 @@ export function NotificacoesPanel() {
             title: '💰 Pagamento pendente (+1 mês)',
             description: `${s.clientes?.nome || 'Cliente'} - ${s.descricao_servico?.substring(0, 50)}`,
             icon: DollarSign,
+            link: '/servicos-extras',
           });
         });
       }
@@ -156,6 +163,7 @@ export function NotificacoesPanel() {
               title: '🚨 Documento vencido',
               description: `${nomeFunc}: ${doc.nome_documento} venceu há ${Math.abs(diasRestantes)} dia(s)`,
               icon: FileWarning,
+              link: '/cadastros/documentacao-funcionarios',
             });
           } else if (diasRestantes <= 17) {
             notifs.push({
@@ -164,6 +172,7 @@ export function NotificacoesPanel() {
               title: '📋 Documento a vencer',
               description: `${nomeFunc}: ${doc.nome_documento} vence em ${diasRestantes} dia(s)`,
               icon: FileWarning,
+              link: '/cadastros/documentacao-funcionarios',
             });
           }
         });
@@ -180,7 +189,7 @@ export function NotificacoesPanel() {
       }
 
       if (ncsRepetidas) {
-        const agrupado: Record<string, { count: number; nome: string; tipoNome: string }> = {};
+        const agrupado: Record<string, { count: number; nome: string; tipoNome: string; tipo: string }> = {};
         ncsRepetidas.forEach((nc: any) => {
           const entityId = nc.funcionario_id || nc.cliente_id;
           if (!entityId) return;
@@ -188,7 +197,7 @@ export function NotificacoesPanel() {
           if (!agrupado[key]) {
             const entityNome = nc.funcionarios?.nome || nc.clientes?.nome || 'Desconhecido';
             const tipoNome = nc.tipos_nc?.nome || 'Tipo desconhecido';
-            agrupado[key] = { count: 0, nome: entityNome, tipoNome };
+            agrupado[key] = { count: 0, nome: entityNome, tipoNome, tipo: nc.tipo };
           }
           agrupado[key].count++;
         });
@@ -201,6 +210,7 @@ export function NotificacoesPanel() {
               title: '⚠️ NC repetida',
               description: `${data.nome}: "${data.tipoNome}" (${data.count}x)`,
               icon: AlertTriangle,
+              link: data.tipo === 'funcionario' ? '/nao-conformidades/funcionarios' : '/nao-conformidades/clientes',
             });
           }
         });
@@ -213,7 +223,40 @@ export function NotificacoesPanel() {
     }
   };
 
-  const totalNotifs = notifications.length;
+  const handleDismiss = (id: string) => {
+    setDismissed((prev) => new Set(prev).add(id));
+  };
+
+  const handleDismissAll = () => {
+    setDismissed(new Set(notifications.map((n) => n.id)));
+  };
+
+  const handleView = (n: Notification) => {
+    if (n.link) {
+      navigate(n.link);
+    }
+  };
+
+  const visibleNotifs = notifications.filter((n) => !dismissed.has(n.id));
+  const totalNotifs = visibleNotifs.length;
+
+  const typeColors: Record<Notification['type'], string> = {
+    aniversario: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+    agendamento: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    horas_extras: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    servico_extra: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    documento_vencendo: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    nc_repetida: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  };
+
+  const typeLabels: Record<Notification['type'], string> = {
+    aniversario: 'Aniversário',
+    agendamento: 'Agendamento',
+    horas_extras: 'Horas Extras',
+    servico_extra: 'Serv. Extra',
+    documento_vencendo: 'Documentação',
+    nc_repetida: 'NC Repetida',
+  };
 
   return (
     <Popover>
@@ -227,29 +270,63 @@ export function NotificacoesPanel() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="p-3 border-b">
-          <h4 className="font-semibold text-sm">Notificações</h4>
-          <p className="text-xs text-muted-foreground">{totalNotifs} alerta(s) ativo(s)</p>
+      <PopoverContent className="w-[420px] p-0" align="end">
+        <div className="p-4 border-b flex items-center justify-between">
+          <div>
+            <h4 className="font-semibold">Notificações</h4>
+            <p className="text-xs text-muted-foreground">{totalNotifs} alerta(s) ativo(s)</p>
+          </div>
+          {totalNotifs > 0 && (
+            <Button variant="ghost" size="sm" className="text-xs" onClick={handleDismissAll}>
+              Limpar tudo
+            </Button>
+          )}
         </div>
-        <ScrollArea className="max-h-[400px]">
+        <ScrollArea className="max-h-[500px]">
           {loading ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">Carregando...</div>
-          ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
+            <div className="p-6 text-center text-sm text-muted-foreground">Carregando...</div>
+          ) : visibleNotifs.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted-foreground">
               Nenhuma notificação no momento
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((n) => (
-                <div key={n.id} className="p-3 hover:bg-accent/50 transition-colors">
+              {visibleNotifs.map((n) => (
+                <div key={n.id} className="p-4 hover:bg-accent/50 transition-colors">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <n.icon className="h-4 w-4 text-muted-foreground" />
+                    <div className="mt-1 shrink-0">
+                      <n.icon className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{n.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{n.description}</p>
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold leading-tight">{n.title}</p>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${typeColors[n.type]}`}>
+                          {typeLabels[n.type]}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{n.description}</p>
+                      <div className="flex items-center gap-1 pt-1">
+                        {n.link && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs gap-1"
+                            onClick={() => handleView(n)}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            Visualizar
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs gap-1 text-destructive hover:text-destructive"
+                          onClick={() => handleDismiss(n.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Dispensar
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
