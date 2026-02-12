@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatDateBR } from '@/lib/dateUtils';
 
 interface NCForPDF {
   titulo: string;
@@ -71,7 +72,7 @@ export function exportNCsPDF(
     const obra = nc.obra?.nome || nc.obras?.nome || '-';
     const filial = nc.filial?.nome || nc.filiais?.nome || '-';
     return [
-      format(new Date(nc.data_ocorrencia), 'dd/MM/yyyy', { locale: ptBR }),
+      formatDateBR(nc.data_ocorrencia),
       nc.titulo,
       pessoa,
       obra,

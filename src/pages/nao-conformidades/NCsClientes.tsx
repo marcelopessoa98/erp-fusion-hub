@@ -33,8 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Users, Trash2, FileDown } from "lucide-react";
 import { exportNCsPDF } from '@/lib/ncPdfExport';
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatDateToString, formatDateBR } from '@/lib/dateUtils';
 
 type NCStatus = "aberta" | "em_andamento" | "resolvida" | "cancelada";
 type NCGravidade = "leve" | "media" | "grave" | "gravissima";
@@ -88,7 +87,7 @@ const NCsClientes = () => {
     filial_id: "",
     obra_id: "",
     tipo_nc_id: "",
-    data_ocorrencia: new Date().toISOString().split("T")[0],
+    data_ocorrencia: formatDateToString(new Date()),
   });
 
   const [resolveData, setResolveData] = useState({
@@ -258,7 +257,7 @@ const NCsClientes = () => {
         .update({
           status: "resolvida" as const,
           acao_corretiva,
-          data_resolucao: new Date().toISOString().split("T")[0],
+          data_resolucao: formatDateToString(new Date()),
           resolvido_por: user?.id,
         })
         .eq("id", id);
@@ -285,7 +284,7 @@ const NCsClientes = () => {
       filial_id: "",
       obra_id: "",
       tipo_nc_id: "",
-      data_ocorrencia: new Date().toISOString().split("T")[0],
+      data_ocorrencia: formatDateToString(new Date()),
     });
   };
 
@@ -605,9 +604,7 @@ const NCsClientes = () => {
                   return (
                     <TableRow key={nc.id}>
                       <TableCell>
-                        {format(new Date(nc.data_ocorrencia), "dd/MM/yyyy", {
-                          locale: ptBR,
-                        })}
+                        {formatDateBR(nc.data_ocorrencia)}
                       </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -698,9 +695,7 @@ const NCsClientes = () => {
                 <div>
                   <p className="text-muted-foreground">Data</p>
                   <p className="font-medium">
-                    {format(new Date(selectedNC.data_ocorrencia), "dd/MM/yyyy", {
-                      locale: ptBR,
-                    })}
+                    {formatDateBR(selectedNC.data_ocorrencia)}
                   </p>
                 </div>
                 <div>
