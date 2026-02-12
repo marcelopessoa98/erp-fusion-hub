@@ -170,10 +170,14 @@ export function NotificacoesPanel() {
       }
 
       // 6. NCs repetidas do mesmo tipo pelo mesmo funcionário ou cliente
-      const { data: ncsRepetidas } = await supabase
+      const { data: ncsRepetidas, error: ncsError } = await supabase
         .from('nao_conformidades')
-        .select('tipo_nc_id, funcionario_id, cliente_id, tipo, funcionarios(nome), clientes(nome), tipos_nc:tipos_nc(nome)')
+        .select('tipo_nc_id, funcionario_id, cliente_id, tipo, funcionarios(nome), clientes(nome), tipos_nc(nome)')
         .not('tipo_nc_id', 'is', null);
+
+      if (ncsError) {
+        console.error('Erro ao buscar NCs repetidas:', ncsError);
+      }
 
       if (ncsRepetidas) {
         const agrupado: Record<string, { count: number; nome: string; tipoNome: string }> = {};
