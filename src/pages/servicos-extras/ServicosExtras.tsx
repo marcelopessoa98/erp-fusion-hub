@@ -62,9 +62,22 @@ export default function ServicosExtras() {
 
   // Dialog states
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
   const [selectedServico, setSelectedServico] = useState<ServicoExtra | null>(null);
   const [deleteServico, setDeleteServico] = useState<ServicoExtra | null>(null);
+
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
+    filial_id: '',
+    cliente_id: '',
+    obra_id: '',
+    material_recebido: '',
+    descricao_servico: '',
+    status_pagamento: 'pendente' as 'pago' | 'pendente',
+    valor: '',
+    data_recebimento: '',
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -109,6 +122,20 @@ export default function ServicosExtras() {
       return data;
     },
     enabled: !!formData.cliente_id,
+  });
+
+  const { data: obrasEdit } = useQuery({
+    queryKey: ['obras-edit', editFormData.cliente_id],
+    queryFn: async () => {
+      let query = supabase.from('obras').select('*').eq('status', 'ativa');
+      if (editFormData.cliente_id) {
+        query = query.eq('cliente_id', editFormData.cliente_id);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!editFormData.cliente_id,
   });
 
   const { servicos, isLoading, createServico, updateServico, deleteServico: deleteServicoMutation } = useServicosExtras({
@@ -159,7 +186,7 @@ export default function ServicosExtras() {
       id: servico.id,
       status_servico: newStatus,
     });
-    setIsManageDialogOpen(false);
+    setIsEditDialogOpen(false);
     setSelectedServico(null);
   };
 
@@ -168,6 +195,48 @@ export default function ServicosExtras() {
       await deleteServicoMutation.mutateAsync(deleteServico.id);
       setDeleteServico(null);
     }
+  };
+
+  const openEditDialog = (servico: ServicoExtra) => {
+    setEditFormData({
+      filial_id: servico.filial_id,
+      cliente_id: servico.cliente_id,
+      obra_id: servico.obra_id,
+      material_recebido: servico.material_recebido,
+      descricao_servico: servico.descricao_servico,
+      status_pagamento: servico.status_pagamento as 'pago' | 'pendente',
+      valor: String(servico.valor || ''),
+      data_recebimento: servico.data_recebimento,
+    });
+    setSelectedServico(servico);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedServico) return;
+    if (!editFormData.filial_id || !editFormData.cliente_id || !editFormData.obra_id || !editFormData.material_recebido || !editFormData.descricao_servico) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha todos os campos obrigatórios.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    await updateServico.mutateAsync({
+      id: selectedServico.id,
+      filial_id: editFormData.filial_id,
+      cliente_id: editFormData.cliente_id,
+      obra_id: editFormData.obra_id,
+      material_recebido: editFormData.material_recebido,
+      descricao_servico: editFormData.descricao_servico,
+      status_pagamento: editFormData.status_pagamento,
+      valor: editFormData.valor ? parseFloat(String(editFormData.valor)) : 0,
+      data_recebimento: editFormData.data_recebimento,
+    });
+
+    setIsEditDialogOpen(false);
+    setSelectedServico(null);
   };
 
   const clearFilters = () => {
@@ -497,10 +566,7 @@ export default function ServicosExtras() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              setSelectedServico(servico);
-                              setIsManageDialogOpen(true);
-                            }}
+                            onClick={() => openEditDialog(servico)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -524,64 +590,158 @@ export default function ServicosExtras() {
         </CardContent>
       </Card>
 
-      {/* Manage Service Dialog */}
-      <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-        <DialogContent>
+      {/* Edit Service Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Gerenciar Serviço</DialogTitle>
+            <DialogTitle>Editar Serviço Extra</DialogTitle>
           </DialogHeader>
-          {selectedServico && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <strong>Cliente:</strong> {selectedServico.cliente?.nome}
+          <div className="max-h-[65vh] overflow-y-auto pr-2">
+            <div className="grid gap-3 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm">Filial *</Label>
+                  <Select value={editFormData.filial_id} onValueChange={(v) => setEditFormData({ ...editFormData, filial_id: v })}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filiais?.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <strong>Obra:</strong> {selectedServico.obra?.nome}
-                </div>
-                <div>
-                  <strong>Data:</strong> {formatDateBR(selectedServico.data_recebimento)}
-                </div>
-                <div>
-                  <strong>Pagamento:</strong> {getStatusPagamentoBadge(selectedServico.status_pagamento)}
-                </div>
-                <div>
-                  <strong>Valor:</strong> {Number(selectedServico.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                <div className="space-y-1">
+                  <Label className="text-sm">Data de Recebimento *</Label>
+                  <Input
+                    type="date"
+                    value={editFormData.data_recebimento}
+                    onChange={(e) => setEditFormData({ ...editFormData, data_recebimento: e.target.value })}
+                    className="h-9"
+                  />
                 </div>
               </div>
-              <div className="text-sm">
-                <strong>Material:</strong>
-                <p className="mt-1 text-muted-foreground">{selectedServico.material_recebido}</p>
-              </div>
-              <div className="text-sm">
-                <strong>Serviço:</strong>
-                <p className="mt-1 text-muted-foreground">{selectedServico.descricao_servico}</p>
-              </div>
-              <div className="text-sm">
-                <strong>Status Atual:</strong> {getStatusServicoBadge(selectedServico.status_servico)}
-              </div>
-              <div className="flex gap-2 pt-4">
-                {selectedServico.status_servico === 'pendente' ? (
-                  <Button
-                    className="flex-1"
-                    onClick={() => handleUpdateStatus(selectedServico, 'finalizado')}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm">Cliente *</Label>
+                  <Select
+                    value={editFormData.cliente_id}
+                    onValueChange={(v) => setEditFormData({ ...editFormData, cliente_id: v, obra_id: '' })}
                   >
-                    <Check className="h-4 w-4 mr-2" />
-                    Marcar como Finalizado
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => handleUpdateStatus(selectedServico, 'pendente')}
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientes?.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Obra *</Label>
+                  <Select
+                    value={editFormData.obra_id}
+                    onValueChange={(v) => setEditFormData({ ...editFormData, obra_id: v })}
+                    disabled={!editFormData.cliente_id}
                   >
-                    <Clock className="h-4 w-4 mr-2" />
-                    Reabrir como Pendente
-                  </Button>
-                )}
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder={editFormData.cliente_id ? 'Selecione' : 'Cliente primeiro'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {obrasEdit?.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              <div className="space-y-1">
+                <Label className="text-sm">Material Recebido *</Label>
+                <Textarea
+                  value={editFormData.material_recebido}
+                  onChange={(e) => setEditFormData({ ...editFormData, material_recebido: e.target.value })}
+                  rows={2}
+                  className="min-h-[60px] resize-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-sm">Descrição do Serviço *</Label>
+                <Textarea
+                  value={editFormData.descricao_servico}
+                  onChange={(e) => setEditFormData({ ...editFormData, descricao_servico: e.target.value })}
+                  rows={2}
+                  className="min-h-[60px] resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm">Valor do Serviço (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editFormData.valor}
+                    onChange={(e) => setEditFormData({ ...editFormData, valor: e.target.value })}
+                    placeholder="0,00"
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Status de Pagamento</Label>
+                  <Select
+                    value={editFormData.status_pagamento}
+                    onValueChange={(v) => setEditFormData({ ...editFormData, status_pagamento: v as 'pago' | 'pendente' })}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pago">Pago</SelectItem>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {selectedServico && (
+                <div className="pt-2 border-t">
+                  <Label className="text-sm">Status do Serviço</Label>
+                  <div className="flex gap-2 mt-2">
+                    {selectedServico.status_servico === 'pendente' ? (
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateStatus(selectedServico, 'finalizado')}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Marcar como Finalizado
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUpdateStatus(selectedServico, 'pendente')}
+                      >
+                        <Clock className="h-4 w-4 mr-2" />
+                        Reabrir como Pendente
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleEditSubmit} disabled={updateServico.isPending}>
+              {updateServico.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
