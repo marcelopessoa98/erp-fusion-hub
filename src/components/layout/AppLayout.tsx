@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/s
 import { AppSidebar } from './AppSidebar';
 import { Separator } from '@/components/ui/separator';
 import { NotificacoesPanel } from '@/components/notifications/NotificacoesPanel';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -83,6 +84,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </BreadcrumbList>
             </Breadcrumb>
             </div>
+            <ThemeToggle />
             <NotificacoesPanel />
           </header>
           <main className="flex-1 p-6">
