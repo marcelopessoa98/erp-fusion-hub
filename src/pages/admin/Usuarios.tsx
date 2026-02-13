@@ -29,7 +29,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, UserCog, Shield, Building2 } from 'lucide-react';
+import { Plus, UserCog, Shield, Building2, Edit, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Database } from '@/integrations/supabase/types';
 
@@ -63,6 +73,9 @@ const Usuarios = () => {
     role: 'operador',
     filiais: [],
   });
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [editUserData, setEditUserData] = useState({ nome: '', email: '', password: '' });
+  const [deleteUserTarget, setDeleteUserTarget] = useState<UserWithRole | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch users with roles and filiais
@@ -238,7 +251,48 @@ const Usuarios = () => {
     },
   });
 
-  const handleCreateUser = () => {
+  // Edit user mutation (via edge function)
+  const editUserMutation = useMutation({
+    mutationFn: async ({ userId, nome, email, password }: { userId: string; nome?: string; email?: string; password?: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
+        body: { action: 'update', userId, nome, email, password },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-admin'] });
+      setIsEditUserDialogOpen(false);
+      setSelectedUser(null);
+      toast.success('Usuário atualizado com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar: ${error.message}`);
+    },
+  });
+
+  // Delete user mutation (via edge function)
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
+        body: { action: 'delete', userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-admin'] });
+      setDeleteUserTarget(null);
+      toast.success('Usuário excluído com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao excluir: ${error.message}`);
+    },
+  });
+
+
     if (!newUser.email || !newUser.password || !newUser.nome) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
@@ -248,6 +302,35 @@ const Usuarios = () => {
       return;
     }
     createUserMutation.mutate(newUser);
+  };
+
+  const openEditUserDialog = (user: UserWithRole) => {
+    setSelectedUser(user);
+    setEditUserData({ nome: user.nome, email: user.email, password: '' });
+    setIsEditUserDialogOpen(true);
+  };
+
+  const handleEditUserSubmit = () => {
+    if (!selectedUser) return;
+    if (!editUserData.nome || !editUserData.email) {
+      toast.error('Nome e e-mail são obrigatórios');
+      return;
+    }
+    if (editUserData.password && editUserData.password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    editUserMutation.mutate({
+      userId: selectedUser.user_id,
+      nome: editUserData.nome,
+      email: editUserData.email,
+      password: editUserData.password || undefined,
+    });
+  };
+
+  const handleDeleteUser = () => {
+    if (!deleteUserTarget) return;
+    deleteUserMutation.mutate(deleteUserTarget.user_id);
   };
 
   const handleFilialToggle = (filialId: string) => {
@@ -482,14 +565,29 @@ const Usuarios = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditFiliais(user)}
-                      >
-                        <Building2 className="h-4 w-4 mr-1" />
-                        Filiais
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditUserDialog(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditFiliais(user)}
+                        >
+                          <Building2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteUserTarget(user)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -540,6 +638,69 @@ const Usuarios = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome Completo *</Label>
+              <Input
+                value={editUserData.nome}
+                onChange={(e) => setEditUserData({ ...editUserData, nome: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>E-mail *</Label>
+              <Input
+                type="email"
+                value={editUserData.email}
+                onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nova Senha (deixe em branco para manter)</Label>
+              <Input
+                type="password"
+                value={editUserData.password}
+                onChange={(e) => setEditUserData({ ...editUserData, password: e.target.value })}
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <Button
+              onClick={handleEditUserSubmit}
+              disabled={editUserMutation.isPending}
+              className="w-full"
+            >
+              {editUserMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!deleteUserTarget} onOpenChange={() => setDeleteUserTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o usuário <strong>{deleteUserTarget?.nome}</strong> ({deleteUserTarget?.email})?
+              Esta ação não pode ser desfeita e removerá todos os dados associados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-destructive text-destructive-foreground"
+            >
+              {deleteUserMutation.isPending ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
