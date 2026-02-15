@@ -31,7 +31,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Trash2, FileDown } from "lucide-react";
+import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Trash2, FileDown, Edit } from "lucide-react";
 import { exportNCsPDF } from '@/lib/ncPdfExport';
 import { formatDateToString, formatDateBR } from '@/lib/dateUtils';
 
@@ -51,6 +51,7 @@ interface NC {
   funcionario_id: string | null;
   filial_id: string;
   obra_id: string | null;
+  tipo_nc_id?: string | null;
   funcionario?: { nome: string } | null;
   filial?: { nome: string };
   obra?: { nome: string } | null;
@@ -75,6 +76,7 @@ const NCsFuncionarios = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedNC, setSelectedNC] = useState<NC | null>(null);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterFilial, setFilterFilial] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -88,6 +90,19 @@ const NCsFuncionarios = () => {
     obra_id: "",
     tipo_nc_id: "",
     data_ocorrencia: formatDateToString(new Date()),
+  });
+
+  const [editFormData, setEditFormData] = useState({
+    titulo: "",
+    descricao: "",
+    gravidade: "leve" as NCGravidade,
+    funcionario_id: "",
+    filial_id: "",
+    obra_id: "",
+    tipo_nc_id: "",
+    data_ocorrencia: "",
+    acao_corretiva: "",
+    status: "aberta" as NCStatus,
   });
 
   const [resolveData, setResolveData] = useState({
@@ -112,7 +127,7 @@ const NCsFuncionarios = () => {
     },
   });
 
-  // Fetch funcionarios
+  // Fetch funcionarios for create form
   const { data: funcionarios = [] } = useQuery({
     queryKey: ["funcionarios", formData.filial_id],
     queryFn: async () => {
@@ -133,7 +148,28 @@ const NCsFuncionarios = () => {
     enabled: !!formData.filial_id,
   });
 
-  // Fetch obras
+  // Fetch funcionarios for edit form
+  const { data: editFuncionarios = [] } = useQuery({
+    queryKey: ["funcionarios-edit", editFormData.filial_id],
+    queryFn: async () => {
+      let query = supabase
+        .from("funcionarios")
+        .select("id, nome")
+        .eq("ativo", true)
+        .order("nome");
+
+      if (editFormData.filial_id) {
+        query = query.eq("filial_id", editFormData.filial_id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!editFormData.filial_id,
+  });
+
+  // Fetch obras for create form
   const { data: obras = [] } = useQuery({
     queryKey: ["obras", formData.filial_id],
     queryFn: async () => {
@@ -152,6 +188,27 @@ const NCsFuncionarios = () => {
       return data;
     },
     enabled: !!formData.filial_id,
+  });
+
+  // Fetch obras for edit form
+  const { data: editObras = [] } = useQuery({
+    queryKey: ["obras-edit", editFormData.filial_id],
+    queryFn: async () => {
+      let query = supabase
+        .from("obras")
+        .select("id, nome")
+        .eq("status", "ativa")
+        .order("nome");
+
+      if (editFormData.filial_id) {
+        query = query.eq("filial_id", editFormData.filial_id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!editFormData.filial_id,
   });
 
   // Fetch tipos de NC para funcionários
@@ -229,6 +286,37 @@ const NCsFuncionarios = () => {
     },
   });
 
+  // Edit NC mutation
+  const editMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: typeof editFormData }) => {
+      const { error } = await supabase
+        .from("nao_conformidades")
+        .update({
+          titulo: data.titulo,
+          descricao: data.descricao,
+          gravidade: data.gravidade,
+          funcionario_id: data.funcionario_id,
+          filial_id: data.filial_id,
+          obra_id: data.obra_id || null,
+          tipo_nc_id: data.tipo_nc_id || null,
+          data_ocorrencia: data.data_ocorrencia,
+          acao_corretiva: data.acao_corretiva || null,
+          status: data.status,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ncs-funcionarios"] });
+      toast.success("NC atualizada com sucesso!");
+      setIsEditDialogOpen(false);
+      setSelectedNC(null);
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar NC: " + error.message);
+    },
+  });
+
   // Delete NC mutation (admin only)
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -289,6 +377,33 @@ const NCsFuncionarios = () => {
       tipo_nc_id: "",
       data_ocorrencia: formatDateToString(new Date()),
     });
+  };
+
+  const openEditDialog = (nc: NC) => {
+    setSelectedNC(nc);
+    setEditFormData({
+      titulo: nc.titulo,
+      descricao: nc.descricao,
+      gravidade: nc.gravidade,
+      funcionario_id: nc.funcionario_id || "",
+      filial_id: nc.filial_id,
+      obra_id: nc.obra_id || "",
+      tipo_nc_id: nc.tipo_nc_id || "",
+      data_ocorrencia: nc.data_ocorrencia,
+      acao_corretiva: nc.acao_corretiva || "",
+      status: nc.status,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedNC) return;
+    if (!editFormData.titulo || !editFormData.descricao || !editFormData.funcionario_id || !editFormData.filial_id || !editFormData.obra_id) {
+      toast.error("Preencha todos os campos obrigatórios (incluindo a Obra)");
+      return;
+    }
+    editMutation.mutate({ id: selectedNC.id, data: editFormData });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -586,7 +701,7 @@ const NCsFuncionarios = () => {
                 <TableHead>Título</TableHead>
                 <TableHead>Gravidade</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[120px]">Ações</TableHead>
+                <TableHead className="w-[150px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -634,6 +749,15 @@ const NCsFuncionarios = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          {canManage && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditDialog(nc)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           {canManage && nc.status === "aberta" && (
                             <Button
                               variant="ghost"
@@ -668,7 +792,7 @@ const NCsFuncionarios = () => {
 
       {/* View Dialog */}
       <Dialog
-        open={!!selectedNC && !isResolveDialogOpen}
+        open={!!selectedNC && !isResolveDialogOpen && !isEditDialogOpen}
         onOpenChange={() => setSelectedNC(null)}
       >
         <DialogContent>
@@ -720,6 +844,202 @@ const NCsFuncionarios = () => {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle>Editar NC de Funcionário</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto space-y-3 pr-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Filial *</Label>
+                <Select
+                  value={editFormData.filial_id}
+                  onValueChange={(value) =>
+                    setEditFormData({ ...editFormData, filial_id: value, funcionario_id: "" })
+                  }
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filiais.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Data *</Label>
+                <Input
+                  type="date"
+                  className="h-9"
+                  value={editFormData.data_ocorrencia}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, data_ocorrencia: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Funcionário *</Label>
+              <Select
+                value={editFormData.funcionario_id}
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, funcionario_id: value })
+                }
+                disabled={!editFormData.filial_id}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Selecione o funcionário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {editFuncionarios.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Obra *</Label>
+                <Select
+                  value={editFormData.obra_id}
+                  onValueChange={(value) =>
+                    setEditFormData({ ...editFormData, obra_id: value })
+                  }
+                  disabled={!editFormData.filial_id}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {editObras.map((o) => (
+                      <SelectItem key={o.id} value={o.id}>
+                        {o.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Gravidade *</Label>
+                <Select
+                  value={editFormData.gravidade}
+                  onValueChange={(value) =>
+                    setEditFormData({ ...editFormData, gravidade: value as NCGravidade })
+                  }
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="leve">Leve</SelectItem>
+                    <SelectItem value="media">Média</SelectItem>
+                    <SelectItem value="grave">Grave</SelectItem>
+                    <SelectItem value="gravissima">Gravíssima</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Tipo de NC</Label>
+              <Select
+                value={editFormData.tipo_nc_id}
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, tipo_nc_id: value })
+                }
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposNC.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Status</Label>
+              <Select
+                value={editFormData.status}
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, status: value as NCStatus })
+                }
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aberta">Aberta</SelectItem>
+                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                  <SelectItem value="resolvida">Resolvida</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Título *</Label>
+              <Input
+                className="h-9"
+                value={editFormData.titulo}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, titulo: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Descrição *</Label>
+              <Textarea
+                value={editFormData.descricao}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, descricao: e.target.value })
+                }
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Ação Corretiva</Label>
+              <Textarea
+                value={editFormData.acao_corretiva}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, acao_corretiva: e.target.value })
+                }
+                placeholder="Descreva a ação corretiva (se houver)..."
+                rows={3}
+              />
+            </div>
+          </form>
+          <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleEditSubmit} disabled={editMutation.isPending}>
+              {editMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
