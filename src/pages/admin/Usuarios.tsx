@@ -292,7 +292,7 @@ const Usuarios = () => {
     },
   });
 
-
+  const handleCreateUser = () => {
     if (!newUser.email || !newUser.password || !newUser.nome) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
