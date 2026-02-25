@@ -548,6 +548,86 @@ export type Database = {
           },
         ]
       }
+      ensaios: {
+        Row: {
+          campos_especificos: Json | null
+          cliente_id: string
+          created_at: string
+          data_ensaio: string
+          filial_id: string
+          id: string
+          obra_id: string
+          observacoes: string | null
+          responsavel_id: string | null
+          resultado: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          campos_especificos?: Json | null
+          cliente_id: string
+          created_at?: string
+          data_ensaio?: string
+          filial_id: string
+          id?: string
+          obra_id: string
+          observacoes?: string | null
+          responsavel_id?: string | null
+          resultado?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          campos_especificos?: Json | null
+          cliente_id?: string
+          created_at?: string
+          data_ensaio?: string
+          filial_id?: string
+          id?: string
+          obra_id?: string
+          observacoes?: string | null
+          responsavel_id?: string | null
+          resultado?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ensaios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ensaios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ensaios_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ensaios_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estoque: {
         Row: {
           filial_id: string
