@@ -1,5 +1,6 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Sidebar,
@@ -87,35 +88,57 @@ const servicosExtrasItems = [
 ];
 
 const ensaiosItems = [
-  { title: 'Ensaios', url: '/ensaios', icon: FlaskConical },
+  { title: 'Arrancamento', url: '/ensaios?tipo=Arrancamento', icon: FlaskConical },
+  { title: 'Laudo Cautelar', url: '/ensaios?tipo=Laudo Cautelar de Vizinhança', icon: FlaskConical },
+  { title: 'Extração', url: '/ensaios?tipo=Extração', icon: FlaskConical },
+  { title: 'Esclerometria', url: '/ensaios?tipo=Esclerometria', icon: FlaskConical },
+  { title: 'PIT', url: '/ensaios?tipo=PIT', icon: FlaskConical },
+  { title: 'Traços', url: '/ensaios?tipo=Traços', icon: FlaskConical },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { profile, role, signOut } = useAuth();
 
   const isActiveGroup = (items: { url: string }[]) => {
-    return items.some((item) => location.pathname.startsWith(item.url));
+    return items.some((item) => {
+      const [path] = item.url.split('?');
+      return location.pathname.startsWith(path);
+    });
+  };
+
+  const isItemActive = (url: string) => {
+    const [path, query] = url.split('?');
+    if (query) {
+      return location.pathname === path && url === `${location.pathname}?${searchParams.toString()}`;
+    }
+    return location.pathname === url;
   };
 
   const renderMenuItems = (items: { title: string; url: string; icon: React.ComponentType<{ className?: string }> }[]) => (
     <SidebarMenu>
-      {items.map((item) => (
-        <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton asChild>
-            <NavLink
-              to={item.url}
-              className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors"
-              activeClassName="bg-accent text-accent-foreground font-medium"
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{item.title}</span>}
-            </NavLink>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
+      {items.map((item) => {
+        const active = isItemActive(item.url);
+        return (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton asChild>
+              <Link
+                to={item.url}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors",
+                  active && "bg-accent text-accent-foreground font-medium"
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>{item.title}</span>}
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
     </SidebarMenu>
   );
 
