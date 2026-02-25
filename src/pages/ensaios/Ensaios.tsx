@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnsaios, TIPOS_ENSAIO, TipoEnsaio, CamposEspecificos } from '@/hooks/useEnsaios';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +33,7 @@ export default function Ensaios() {
   const { user, role } = useAuth();
   const { ensaios, isLoading, createEnsaio, updateEnsaio, deleteEnsaio, isCreating, isUpdating, uploadAnexo, listAnexos, getAnexoUrl, deleteAnexo } = useEnsaios();
   const canManage = role === 'admin' || role === 'gerente';
+  const [searchParams] = useSearchParams();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -39,6 +41,14 @@ export default function Ensaios() {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
   const [filtroStatus, setFiltroStatus] = useState<string>('todos');
   const [busca, setBusca] = useState('');
+
+  // Sync filtroTipo with query param
+  useEffect(() => {
+    const tipoParam = searchParams.get('tipo');
+    if (tipoParam) {
+      setFiltroTipo(tipoParam);
+    }
+  }, [searchParams]);
 
   // Form state
   const [filialId, setFilialId] = useState('');
