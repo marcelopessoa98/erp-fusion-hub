@@ -31,6 +31,7 @@ import Medicoes from "./pages/financeiro/Medicoes";
 import ContratosConfig from "./pages/financeiro/ContratosConfig";
 import Propostas from "./pages/financeiro/Propostas";
 import SolicitacoesCompras from "./pages/financeiro/SolicitacoesCompras";
+import Ensaios from "./pages/ensaios/Ensaios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -267,6 +268,18 @@ const AppRoutes = () => {
         }
       />
       
+      {/* Ensaios */}
+      <Route
+        path="/ensaios"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Ensaios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Administração */}
       <Route
         path="/admin/usuarios"

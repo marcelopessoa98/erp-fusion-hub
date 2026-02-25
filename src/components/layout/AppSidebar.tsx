@@ -37,6 +37,7 @@ import {
   ClipboardList,
   FileSignature,
   ShoppingCart,
+  FlaskConical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +84,10 @@ const agendamentosItems = [
 
 const servicosExtrasItems = [
   { title: 'Gerenciar', url: '/servicos-extras', icon: Wrench },
+];
+
+const ensaiosItems = [
+  { title: 'Ensaios', url: '/ensaios', icon: FlaskConical },
 ];
 
 export function AppSidebar() {
@@ -247,6 +252,23 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 {renderMenuItems(servicosExtrasItems)}
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Ensaios */}
+        <Collapsible defaultOpen={isActiveGroup(ensaiosItems)} className="group/collapsible">
+          <SidebarGroup>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="cursor-pointer hover:bg-accent rounded-md px-3 py-2 flex items-center justify-between">
+                <span className={cn(collapsed && 'sr-only')}>Ensaios</span>
+                {!collapsed && <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                {renderMenuItems(ensaiosItems)}
               </SidebarGroupContent>
             </CollapsibleContent>
           </SidebarGroup>
