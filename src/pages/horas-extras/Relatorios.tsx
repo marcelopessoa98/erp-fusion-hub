@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 import { Download, FileText, Clock, Users, Building2, TrendingUp } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths, getDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

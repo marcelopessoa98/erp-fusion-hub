@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import { Plus, Search, Eye, CheckCircle, AlertTriangle, AlertCircle, XCircle, Users, Trash2, FileDown, Edit } from "lucide-react";
 import { exportNCsPDF } from '@/lib/ncPdfExport';
 import { formatDateToString, formatDateBR } from '@/lib/dateUtils';

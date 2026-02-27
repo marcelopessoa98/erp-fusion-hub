@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 import { Plus, UserCog, Shield, Building2, Edit, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
