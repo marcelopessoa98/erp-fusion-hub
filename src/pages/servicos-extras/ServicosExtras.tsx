@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ComboboxSearch } from '@/components/ui/combobox-search';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
@@ -328,36 +329,26 @@ export default function ServicosExtras() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-sm">Cliente *</Label>
-                    <Select
+                    <ComboboxSearch
+                      options={clientes?.map((c) => ({ value: c.id, label: c.nome })) || []}
                       value={formData.cliente_id}
                       onValueChange={(v) => setFormData({ ...formData, cliente_id: v, obra_id: '' })}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientes?.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      placeholder="Selecione o cliente"
+                      searchPlaceholder="Buscar cliente..."
+                      emptyText="Nenhum cliente encontrado."
+                    />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-sm">Obra *</Label>
-                    <Select
+                    <ComboboxSearch
+                      options={obras?.map((o) => ({ value: o.id, label: o.nome })) || []}
                       value={formData.obra_id}
                       onValueChange={(v) => setFormData({ ...formData, obra_id: v })}
+                      placeholder={formData.cliente_id ? 'Selecione a obra' : 'Cliente primeiro'}
+                      searchPlaceholder="Buscar obra..."
+                      emptyText="Nenhuma obra encontrada."
                       disabled={!formData.cliente_id}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder={formData.cliente_id ? 'Selecione' : 'Cliente primeiro'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {obras?.map((o) => (
-                          <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
                 </div>
 
@@ -626,36 +617,26 @@ export default function ServicosExtras() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-sm">Cliente *</Label>
-                  <Select
+                  <ComboboxSearch
+                    options={clientes?.map((c) => ({ value: c.id, label: c.nome })) || []}
                     value={editFormData.cliente_id}
                     onValueChange={(v) => setEditFormData({ ...editFormData, cliente_id: v, obra_id: '' })}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clientes?.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder="Selecione o cliente"
+                    searchPlaceholder="Buscar cliente..."
+                    emptyText="Nenhum cliente encontrado."
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-sm">Obra *</Label>
-                  <Select
+                  <ComboboxSearch
+                    options={obrasEdit?.map((o) => ({ value: o.id, label: o.nome })) || []}
                     value={editFormData.obra_id}
                     onValueChange={(v) => setEditFormData({ ...editFormData, obra_id: v })}
+                    placeholder={editFormData.cliente_id ? 'Selecione a obra' : 'Cliente primeiro'}
+                    searchPlaceholder="Buscar obra..."
+                    emptyText="Nenhuma obra encontrada."
                     disabled={!editFormData.cliente_id}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder={editFormData.cliente_id ? 'Selecione' : 'Cliente primeiro'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {obrasEdit?.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
               </div>
 
