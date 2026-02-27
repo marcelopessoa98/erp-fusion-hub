@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Building2, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import loginLogo from '@/assets/login-logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -70,9 +71,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src={loginLogo} alt="Concrefuji" className="mx-auto w-24 h-24 rounded-2xl object-contain" />
           <div>
             <CardTitle className="text-2xl font-bold">ERP Integrado</CardTitle>
             <CardDescription>Sistema de Gestão Empresarial</CardDescription>
