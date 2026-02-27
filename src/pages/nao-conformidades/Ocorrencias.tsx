@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 import { Plus, Search, AlertTriangle, CheckCircle, Clock, Eye, Trash2, FileDown } from 'lucide-react';
 import { exportNCsPDF } from '@/lib/ncPdfExport';
 import { formatDateToString, formatDateBR } from '@/lib/dateUtils';

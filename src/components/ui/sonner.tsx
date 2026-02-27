@@ -1,5 +1,6 @@
 import { useTheme } from "next-themes";
-import { Toaster as Sonner, toast } from "sonner";
+import { Toaster as Sonner, toast as sonnerToast } from "sonner";
+import { playSuccessSound, playErrorSound, playInfoSound } from "@/lib/sounds";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
@@ -23,5 +24,25 @@ const Toaster = ({ ...props }: ToasterProps) => {
     />
   );
 };
+
+// Wrap toast methods with sound effects
+const toast = Object.assign(
+  (...args: Parameters<typeof sonnerToast>) => sonnerToast(...args),
+  {
+    ...sonnerToast,
+    success: (...args: Parameters<typeof sonnerToast.success>) => {
+      playSuccessSound();
+      return sonnerToast.success(...args);
+    },
+    error: (...args: Parameters<typeof sonnerToast.error>) => {
+      playErrorSound();
+      return sonnerToast.error(...args);
+    },
+    info: (...args: Parameters<typeof sonnerToast.info>) => {
+      playInfoSound();
+      return sonnerToast.info(...args);
+    },
+  }
+);
 
 export { Toaster, toast };

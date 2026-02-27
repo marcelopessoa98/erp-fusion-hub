@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 
 export const TIPOS_DOCUMENTO = [
   { tipo: 'registro_trabalho', nome: 'Registro de Trabalho', temValidade: false },

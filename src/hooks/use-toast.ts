@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
+import { playSuccessSound, playErrorSound } from "@/lib/sounds";
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -136,6 +137,13 @@ type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {
   const id = genId();
+
+  // Play sound based on variant
+  if (props.variant === 'destructive') {
+    playErrorSound();
+  } else {
+    playSuccessSound();
+  }
 
   const update = (props: ToasterToast) =>
     dispatch({
