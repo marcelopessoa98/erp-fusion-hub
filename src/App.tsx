@@ -32,6 +32,7 @@ import ContratosConfig from "./pages/financeiro/ContratosConfig";
 import Propostas from "./pages/financeiro/Propostas";
 import SolicitacoesCompras from "./pages/financeiro/SolicitacoesCompras";
 import Ensaios from "./pages/ensaios/Ensaios";
+import EquipeTecnica from "./pages/cadastros/EquipeTecnica";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -100,6 +101,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <Funcionarios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cadastros/equipe-tecnica"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <EquipeTecnica />
             </AppLayout>
           </ProtectedRoute>
         }

@@ -628,6 +628,42 @@ export type Database = {
           },
         ]
       }
+      equipe_tecnica: {
+        Row: {
+          ativo: boolean
+          cargo: string | null
+          carimbo_url: string | null
+          created_at: string
+          formacao: string | null
+          id: string
+          nome: string
+          numero_crea: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cargo?: string | null
+          carimbo_url?: string | null
+          created_at?: string
+          formacao?: string | null
+          id?: string
+          nome: string
+          numero_crea?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cargo?: string | null
+          carimbo_url?: string | null
+          created_at?: string
+          formacao?: string | null
+          id?: string
+          nome?: string
+          numero_crea?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       estoque: {
         Row: {
           filial_id: string
