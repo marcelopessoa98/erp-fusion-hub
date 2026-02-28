@@ -46,7 +46,7 @@ const EquipeTecnica = () => {
 
   const fetchData = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('equipe_tecnica')
         .select('*')
         .order('nome');
@@ -123,11 +123,11 @@ const EquipeTecnica = () => {
       };
 
       if (editing) {
-        const { error } = await supabase.from('equipe_tecnica').update(payload).eq('id', editing.id);
+        const { error } = await (supabase as any).from('equipe_tecnica').update(payload).eq('id', editing.id);
         if (error) throw error;
         toast.success('Membro atualizado com sucesso!');
       } else {
-        const { error } = await supabase.from('equipe_tecnica').insert(payload);
+        const { error } = await (supabase as any).from('equipe_tecnica').insert(payload);
         if (error) throw error;
         toast.success('Membro cadastrado com sucesso!');
       }
@@ -145,7 +145,7 @@ const EquipeTecnica = () => {
 
   const toggleAtivo = async (m: MembroEquipe) => {
     try {
-      const { error } = await supabase.from('equipe_tecnica').update({ ativo: !m.ativo }).eq('id', m.id);
+      const { error } = await (supabase as any).from('equipe_tecnica').update({ ativo: !m.ativo }).eq('id', m.id);
       if (error) throw error;
       toast.success(m.ativo ? 'Membro desativado' : 'Membro ativado');
       fetchData();
@@ -157,7 +157,7 @@ const EquipeTecnica = () => {
   const deleteMembro = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este membro?')) return;
     try {
-      const { error } = await supabase.from('equipe_tecnica').delete().eq('id', id);
+      const { error } = await (supabase as any).from('equipe_tecnica').delete().eq('id', id);
       if (error) throw error;
       toast.success('Membro excluído com sucesso!');
       fetchData();
