@@ -39,6 +39,7 @@ import {
   FileSignature,
   ShoppingCart,
   FlaskConical,
+  GraduationCap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +57,7 @@ const cadastrosItems = [
   { title: 'Obras', url: '/cadastros/obras', icon: HardHat },
   { title: 'Funcionários', url: '/cadastros/funcionarios', icon: UserCog },
   { title: 'Documentação', url: '/cadastros/documentacao', icon: FileText },
+  { title: 'Equipe Técnica', url: '/cadastros/equipe-tecnica', icon: GraduationCap },
 ];
 
 const financeiroItems = [
