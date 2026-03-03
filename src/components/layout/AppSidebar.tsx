@@ -90,12 +90,7 @@ const servicosExtrasItems = [
 ];
 
 const ensaiosItems = [
-  { title: 'Arrancamento', url: '/ensaios?tipo=Arrancamento', icon: FlaskConical },
-  { title: 'Laudo Cautelar', url: '/ensaios?tipo=Laudo Cautelar de Vizinhança', icon: FlaskConical },
-  { title: 'Extração', url: '/ensaios?tipo=Extração', icon: FlaskConical },
-  { title: 'Esclerometria', url: '/ensaios?tipo=Esclerometria', icon: FlaskConical },
-  { title: 'PIT', url: '/ensaios?tipo=PIT', icon: FlaskConical },
-  { title: 'Traços', url: '/ensaios?tipo=Traços', icon: FlaskConical },
+  { title: 'Traços', url: '/ensaios', icon: FlaskConical },
 ];
 
 export function AppSidebar() {
