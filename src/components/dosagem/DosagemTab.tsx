@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
-import { Checkbox } from '@/components/ui/checkbox';
-import { MATERIAIS_PADRAO, MaterialDensidade } from '@/lib/dosagem/constants';
+import { MATERIAIS_PADRAO } from '@/lib/dosagem/constants';
 import { calcularVolume, calcularDosagem, calcularBetonada, MaterialTraco, ResultadoDosagem } from '@/lib/dosagem/calculations';
 import { CheckCircle, AlertTriangle, XCircle, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,7 +16,7 @@ interface MaterialRow {
   materialId: string;
   massa: number;
   umidade: number;
-  aditivoPercent: number; // only for aditivos
+  aditivoPercent: number;
 }
 
 export function DosagemTab() {
@@ -26,7 +25,6 @@ export function DosagemTab() {
   const [volumeBetoneira, setVolumeBetoneira] = useState(1.0);
   const [nomeTraco, setNomeTraco] = useState('');
 
-  // Material rows
   const [rows, setRows] = useState<MaterialRow[]>([
     { materialId: 'cimento', massa: 400, umidade: 0, aditivoPercent: 0 },
     { materialId: 'areia_media', massa: 600, umidade: 2, aditivoPercent: 0 },
@@ -46,7 +44,6 @@ export function DosagemTab() {
     setRows(prev => {
       const next = [...prev];
       next[idx] = { ...next[idx], [field]: value };
-      // Auto-calc água pela relação a/c
       if (field === 'massa' || field === 'materialId') {
         const cimentoRow = next.find(r => {
           const mat = MATERIAIS_PADRAO.find(m => m.id === r.materialId);
@@ -59,7 +56,6 @@ export function DosagemTab() {
         if (cimentoRow && aguaRow) {
           aguaRow.massa = Math.round(cimentoRow.massa * relacaoAC * 100) / 100;
         }
-        // Auto-calc aditivos
         for (const r of next) {
           const mat = MATERIAIS_PADRAO.find(m => m.id === r.materialId);
           if (mat?.categoria === 'aditivo' && cimentoRow && r.aditivoPercent > 0) {
@@ -71,7 +67,6 @@ export function DosagemTab() {
     });
   };
 
-  // Recalc água quando a/c muda
   const handleACChange = (val: number) => {
     setRelacaoAC(val);
     setRows(prev => {
@@ -85,7 +80,6 @@ export function DosagemTab() {
     });
   };
 
-  // Build MaterialTraco array
   const materiais: MaterialTraco[] = useMemo(() => {
     return rows
       .map(r => {
@@ -139,7 +133,6 @@ export function DosagemTab() {
   const progressColor = resultado.status === 'fechado' ? '[&>div]:bg-green-500' :
     resultado.status === 'alto' ? '[&>div]:bg-red-500' : '[&>div]:bg-yellow-500';
 
-  // Materiais não utilizados para o select
   const materiaisDisponiveis = MATERIAIS_PADRAO.filter(
     m => !rows.some(r => r.materialId === m.id)
   );
@@ -174,24 +167,23 @@ export function DosagemTab() {
           <CardContent className="space-y-3 pt-0">
             <div>
               <Label className="text-xs">Nome do Traço</Label>
-              <Input value={nomeTraco} onChange={e => setNomeTraco(e.target.value)} placeholder="Ex: T-1 Parede FCK25" className="h-8 text-sm" />
+              <Input value={nomeTraco} onChange={e => setNomeTraco(e.target.value)} placeholder="Ex: T-1 Parede FCK25" className="h-10 text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs">Relação a/c</Label>
-                <Input type="number" step="0.01" min="0.2" max="1.0" value={relacaoAC} onChange={e => handleACChange(parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
+                <Input type="number" step="0.01" min="0.2" max="1.0" value={relacaoAC} onChange={e => handleACChange(parseFloat(e.target.value) || 0)} className="h-10 text-sm" />
               </div>
               <div>
                 <Label className="text-xs">Slump (mm)</Label>
-                <Input value={slump} onChange={e => setSlump(e.target.value)} className="h-8 text-sm" />
+                <Input value={slump} onChange={e => setSlump(e.target.value)} className="h-10 text-sm" />
               </div>
             </div>
             <div>
               <Label className="text-xs">Volume Betoneira (m³)</Label>
-              <Input type="number" step="0.1" min="0.1" value={volumeBetoneira} onChange={e => setVolumeBetoneira(parseFloat(e.target.value) || 1)} className="h-8 text-sm" />
+              <Input type="number" step="0.1" min="0.1" value={volumeBetoneira} onChange={e => setVolumeBetoneira(parseFloat(e.target.value) || 1)} className="h-10 text-sm" />
             </div>
 
-            {/* Results summary */}
             <div className="border-t pt-3 space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Consumo Cimento:</span>
@@ -217,7 +209,7 @@ export function DosagemTab() {
         <Card className="xl:col-span-2">
           <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
             <CardTitle className="text-sm">Materiais</CardTitle>
-            <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs">
+            <Button size="sm" variant="outline" onClick={addRow} className="h-8 text-xs">
               <Plus className="h-3 w-3 mr-1" />Adicionar
             </Button>
           </CardHeader>
@@ -226,12 +218,12 @@ export function DosagemTab() {
               <Table>
                 <TableHeader>
                   <TableRow className="text-xs">
-                    <TableHead className="w-[180px]">Material</TableHead>
-                    <TableHead className="w-[90px] text-center">Massa (kg)</TableHead>
-                    <TableHead className="w-[70px] text-center">Dens.</TableHead>
-                    <TableHead className="w-[70px] text-center">Umid. %</TableHead>
-                    <TableHead className="w-[90px] text-center">Volume (m³)</TableHead>
-                    <TableHead className="w-[90px] text-center">M. Corrig.</TableHead>
+                    <TableHead className="w-[200px]">Material</TableHead>
+                    <TableHead className="w-[110px] text-center">Massa (kg)</TableHead>
+                    <TableHead className="w-[80px] text-center">Dens.</TableHead>
+                    <TableHead className="w-[90px] text-center">Umid. %</TableHead>
+                    <TableHead className="w-[100px] text-center">Volume (m³)</TableHead>
+                    <TableHead className="w-[100px] text-center">M. Corrig.</TableHead>
                     <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -246,9 +238,9 @@ export function DosagemTab() {
 
                     return (
                       <TableRow key={i} className="text-xs">
-                        <TableCell className="py-1">
+                        <TableCell className="py-1.5">
                           <Select value={row.materialId} onValueChange={v => updateRow(i, 'materialId', v)}>
-                            <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
                             <SelectContent>
                               {mat && <SelectItem value={mat.id}>{mat.nome}</SelectItem>}
                               {materiaisDisponiveis.map(m => (
@@ -257,7 +249,7 @@ export function DosagemTab() {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell className="py-1">
+                        <TableCell className="py-1.5">
                           {isAditivo ? (
                             <div className="flex items-center gap-1">
                               <Input
@@ -265,16 +257,13 @@ export function DosagemTab() {
                                 step="0.1"
                                 value={row.aditivoPercent || ''}
                                 onChange={e => {
-                                  updateRow(i, 'aditivoPercent', parseFloat(e.target.value) || 0);
-                                  // Recalc aditivo mass
+                                  const pct = parseFloat(e.target.value) || 0;
                                   const cimentoRow = rows.find(r => MATERIAIS_PADRAO.find(m => m.id === r.materialId)?.categoria === 'cimento');
-                                  if (cimentoRow) {
-                                    const newRows = [...rows];
-                                    newRows[i] = { ...newRows[i], aditivoPercent: parseFloat(e.target.value) || 0, massa: Math.round(cimentoRow.massa * (parseFloat(e.target.value) || 0) / 100 * 100) / 100 };
-                                    setRows(newRows);
-                                  }
+                                  const newRows = [...rows];
+                                  newRows[i] = { ...newRows[i], aditivoPercent: pct, massa: cimentoRow ? Math.round(cimentoRow.massa * pct / 100 * 100) / 100 : 0 };
+                                  setRows(newRows);
                                 }}
-                                className="h-7 text-xs text-center w-14"
+                                className="h-9 text-sm text-center w-16"
                                 placeholder="%"
                               />
                               <span className="text-[10px] text-muted-foreground">%</span>
@@ -286,15 +275,15 @@ export function DosagemTab() {
                               min="0"
                               value={row.massa || ''}
                               onChange={e => updateRow(i, 'massa', parseFloat(e.target.value) || 0)}
-                              className={cn('h-7 text-xs text-center', isCalcField && 'bg-muted text-muted-foreground')}
+                              className={cn('h-9 text-sm text-center', isCalcField && 'bg-muted text-muted-foreground')}
                               readOnly={isCalcField}
                             />
                           )}
                         </TableCell>
-                        <TableCell className="text-center py-1 text-muted-foreground">
+                        <TableCell className="text-center py-1.5 text-muted-foreground">
                           {mat?.densidade.toFixed(2) || '-'}
                         </TableCell>
-                        <TableCell className="py-1">
+                        <TableCell className="py-1.5">
                           {(mat?.categoria === 'areia' || mat?.categoria === 'brita') ? (
                             <Input
                               type="number"
@@ -302,20 +291,20 @@ export function DosagemTab() {
                               min="0"
                               value={row.umidade || ''}
                               onChange={e => updateRow(i, 'umidade', parseFloat(e.target.value) || 0)}
-                              className="h-7 text-xs text-center"
+                              className="h-9 text-sm text-center"
                             />
                           ) : (
                             <span className="block text-center text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-center py-1 font-mono text-muted-foreground">
+                        <TableCell className="text-center py-1.5 font-mono text-muted-foreground">
                           {volume.toFixed(4)}
                         </TableCell>
-                        <TableCell className="text-center py-1 font-mono text-muted-foreground">
+                        <TableCell className="text-center py-1.5 font-mono text-muted-foreground">
                           {massaCorrigida.toFixed(1)}
                         </TableCell>
-                        <TableCell className="py-1">
-                          <Button variant="ghost" size="icon" onClick={() => removeRow(i)} className="h-6 w-6">
+                        <TableCell className="py-1.5">
+                          <Button variant="ghost" size="icon" onClick={() => removeRow(i)} className="h-7 w-7">
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </TableCell>
