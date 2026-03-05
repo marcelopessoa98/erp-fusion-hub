@@ -20,22 +20,33 @@ import {
 } from '@/lib/dosagem/calculations';
 import {
   ResponsiveContainer,
-  LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  Area,
   ComposedChart,
 } from 'recharts';
 
 type TipoAgregado = 'miudo' | 'graudo';
 
+// Colors matching Excel spreadsheet
+const COLORS = {
+  zonaUtilInf: '#2563eb',    // blue
+  zonaOtimaInf: '#16a34a',   // green
+  zonaOtimaSup: '#16a34a',   // green
+  zonaUtilSup: '#2563eb',    // blue
+  material: '#dc2626',       // red
+  brita0: '#f59e0b',         // amber
+  brita1: '#8b5cf6',         // violet
+  brita2: '#06b6d4',         // cyan
+  brita3: '#ec4899',         // pink
+  brita4: '#84cc16',         // lime
+};
+
 export function GranulometriaTab() {
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>('miudo');
-  const [zonaGraudoIdx, setZonaGraudoIdx] = useState(0);
 
   const peneiras = tipoAgregado === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
 
@@ -61,9 +72,30 @@ export function GranulometriaTab() {
   const totalA = massasA.reduce((s, v) => s + v, 0);
   const totalB = massasB.reduce((s, v) => s + v, 0);
 
-  // Chart data
+  // Detect which brita zone the material falls into (for graúdo)
+  const detectedZona = useMemo(() => {
+    if (tipoAgregado !== 'graudo') return null;
+    // Find zone where material best fits
+    for (let zi = 0; zi < ZONAS_GRAUDO.length; zi++) {
+      const zona = ZONAS_GRAUDO[zi];
+      let withinZone = true;
+      for (const d of dados) {
+        const faixa = zona.faixas[d.abertura];
+        if (faixa && d.retidaAcumulada > 0) {
+          if (d.retidaAcumulada < faixa[0] - 5 || d.retidaAcumulada > faixa[1] + 5) {
+            withinZone = false;
+            break;
+          }
+        }
+      }
+      if (withinZone && totalA > 0) return zona.nome;
+    }
+    return null;
+  }, [tipoAgregado, dados, totalA]);
+
+  // Chart data - X axis goes from large (left) to small (right)
   const chartData = useMemo(() => {
-    return dados.filter(d => d.abertura > 0.075).map(d => {
+    return dados.filter(d => d.abertura >= 0.15).map(d => {
       const point: any = {
         abertura: d.abertura,
         label: d.label,
@@ -79,21 +111,23 @@ export function GranulometriaTab() {
           point.zonaUtilSup = zona[3];
         }
       } else {
-        const zona = ZONAS_GRAUDO[zonaGraudoIdx];
-        if (zona) {
+        // Show ALL brita zones simultaneously
+        for (let zi = 0; zi < ZONAS_GRAUDO.length; zi++) {
+          const zona = ZONAS_GRAUDO[zi];
           const faixa = zona.faixas[d.abertura];
           if (faixa) {
-            point.faixaInf = faixa[0];
-            point.faixaSup = faixa[1];
+            point[`brita${zi}Inf`] = faixa[0];
+            point[`brita${zi}Sup`] = faixa[1];
           }
         }
       }
 
       return point;
-    }).reverse(); // menor abertura primeiro para o gráfico
-  }, [dados, tipoAgregado, zonaGraudoIdx]);
+    });
+    // No reverse - data naturally goes from large to small abertura
+  }, [dados, tipoAgregado]);
 
-  const updateMassa = (arr: number[], setArr: React.Dispatch<React.SetStateAction<number[]>>, idx: number, val: string) => {
+  const updateMassa = (setArr: React.Dispatch<React.SetStateAction<number[]>>, idx: number, val: string) => {
     const n = parseFloat(val) || 0;
     setArr(prev => {
       const next = [...prev];
@@ -109,33 +143,25 @@ export function GranulometriaTab() {
         <div>
           <Label className="text-xs">Tipo de Agregado</Label>
           <Select value={tipoAgregado} onValueChange={(v) => handleTipoChange(v as TipoAgregado)}>
-            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[200px] h-10"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="miudo">Agregado Miúdo</SelectItem>
               <SelectItem value="graudo">Agregado Graúdo</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        {tipoAgregado === 'graudo' && (
-          <div>
-            <Label className="text-xs">Faixa Granulométrica</Label>
-            <Select value={String(zonaGraudoIdx)} onValueChange={(v) => setZonaGraudoIdx(Number(v))}>
-              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {ZONAS_GRAUDO.map((z, i) => (
-                  <SelectItem key={i} value={String(i)}>{z.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        <div className="flex gap-4">
-          <Badge variant="outline" className="h-8 flex items-center gap-1">
+        <div className="flex gap-3">
+          <Badge variant="outline" className="h-9 flex items-center gap-1 text-sm px-3">
             MF: <span className="font-bold">{moduloFinura.toFixed(2)}</span>
           </Badge>
-          <Badge variant="outline" className="h-8 flex items-center gap-1">
+          <Badge variant="outline" className="h-9 flex items-center gap-1 text-sm px-3">
             Dmáx: <span className="font-bold">{diametroMaximo} mm</span>
           </Badge>
+          {tipoAgregado === 'graudo' && detectedZona && (
+            <Badge className="h-9 flex items-center gap-1 text-sm px-3">
+              Classificação: {detectedZona}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -146,51 +172,51 @@ export function GranulometriaTab() {
             <CardTitle className="text-sm">Dados Granulométricos</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-auto max-h-[500px]">
+            <div className="overflow-auto max-h-[520px]">
               <Table>
                 <TableHeader>
                   <TableRow className="text-xs">
                     <TableHead className="w-[80px]">Peneira</TableHead>
-                    <TableHead className="w-[80px] text-center">Massa A (g)</TableHead>
-                    <TableHead className="w-[80px] text-center">Massa B (g)</TableHead>
-                    <TableHead className="w-[60px] text-center">% Ret. A</TableHead>
-                    <TableHead className="w-[60px] text-center">% Ret. B</TableHead>
-                    <TableHead className="w-[50px] text-center">Var.</TableHead>
-                    <TableHead className="w-[60px] text-center">Média %</TableHead>
-                    <TableHead className="w-[60px] text-center">Acum. %</TableHead>
+                    <TableHead className="w-[100px] text-center">Massa A (g)</TableHead>
+                    <TableHead className="w-[100px] text-center">Massa B (g)</TableHead>
+                    <TableHead className="w-[65px] text-center">% Ret. A</TableHead>
+                    <TableHead className="w-[65px] text-center">% Ret. B</TableHead>
+                    <TableHead className="w-[55px] text-center">Var.</TableHead>
+                    <TableHead className="w-[65px] text-center">Média %</TableHead>
+                    <TableHead className="w-[65px] text-center">Acum. %</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {dados.map((d, i) => (
                     <TableRow key={d.abertura} className="text-xs">
-                      <TableCell className="font-medium py-1">{d.label}</TableCell>
-                      <TableCell className="py-1">
+                      <TableCell className="font-medium py-1.5">{d.label}</TableCell>
+                      <TableCell className="py-1.5">
                         <Input
                           type="number"
                           min="0"
                           step="0.1"
                           value={massasA[i] || ''}
-                          onChange={e => updateMassa(massasA, setMassasA, i, e.target.value)}
-                          className="h-7 text-xs text-center w-full"
+                          onChange={e => updateMassa(setMassasA, i, e.target.value)}
+                          className="h-9 text-sm text-center w-full"
                         />
                       </TableCell>
-                      <TableCell className="py-1">
+                      <TableCell className="py-1.5">
                         <Input
                           type="number"
                           min="0"
                           step="0.1"
                           value={massasB[i] || ''}
-                          onChange={e => updateMassa(massasB, setMassasB, i, e.target.value)}
-                          className="h-7 text-xs text-center w-full"
+                          onChange={e => updateMassa(setMassasB, i, e.target.value)}
+                          className="h-9 text-sm text-center w-full"
                         />
                       </TableCell>
-                      <TableCell className="text-center py-1 text-muted-foreground">{d.percRetidaA.toFixed(1)}</TableCell>
-                      <TableCell className="text-center py-1 text-muted-foreground">{d.percRetidaB.toFixed(1)}</TableCell>
-                      <TableCell className={`text-center py-1 ${d.variacao > 4 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
+                      <TableCell className="text-center py-1.5 text-muted-foreground">{d.percRetidaA.toFixed(1)}</TableCell>
+                      <TableCell className="text-center py-1.5 text-muted-foreground">{d.percRetidaB.toFixed(1)}</TableCell>
+                      <TableCell className={`text-center py-1.5 ${d.variacao > 4 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
                         {d.variacao.toFixed(1)}
                       </TableCell>
-                      <TableCell className="text-center py-1 text-muted-foreground">{d.mediaRetida.toFixed(1)}</TableCell>
-                      <TableCell className="text-center py-1 font-medium">{d.retidaAcumulada.toFixed(1)}</TableCell>
+                      <TableCell className="text-center py-1.5 text-muted-foreground">{d.mediaRetida.toFixed(1)}</TableCell>
+                      <TableCell className="text-center py-1.5 font-medium">{d.retidaAcumulada.toFixed(1)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="text-xs font-bold bg-muted/50">
@@ -211,7 +237,7 @@ export function GranulometriaTab() {
             <CardTitle className="text-sm">Curva Granulométrica</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <ResponsiveContainer width="100%" height={420}>
+            <ResponsiveContainer width="100%" height={460}>
               <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis
@@ -219,6 +245,7 @@ export function GranulometriaTab() {
                   scale="log"
                   domain={['dataMin', 'dataMax']}
                   type="number"
+                  reversed={true}
                   tickFormatter={(v) => v >= 1 ? v.toFixed(1) : v.toFixed(2)}
                   label={{ value: 'Abertura (mm)', position: 'bottom', offset: 5, fontSize: 11 }}
                   fontSize={10}
@@ -236,19 +263,31 @@ export function GranulometriaTab() {
 
                 {tipoAgregado === 'miudo' ? (
                   <>
-                    <Line type="monotone" dataKey="zonaUtilInf" stroke="hsl(var(--primary))" strokeDasharray="5 5" dot={false} name="Zona Utilizável Inf." strokeWidth={1} />
-                    <Line type="monotone" dataKey="zonaOtimaInf" stroke="hsl(var(--chart-2))" strokeDasharray="3 3" dot={false} name="Zona Ótima Inf." strokeWidth={1} />
-                    <Line type="monotone" dataKey="zonaOtimaSup" stroke="hsl(var(--chart-2))" strokeDasharray="3 3" dot={false} name="Zona Ótima Sup." strokeWidth={1} />
-                    <Line type="monotone" dataKey="zonaUtilSup" stroke="hsl(var(--primary))" strokeDasharray="5 5" dot={false} name="Zona Utilizável Sup." strokeWidth={1} />
+                    <Line type="monotone" dataKey="zonaUtilInf" stroke={COLORS.zonaUtilInf} strokeDasharray="8 4" dot={false} name="Zona Utilizável Inf." strokeWidth={1.5} />
+                    <Line type="monotone" dataKey="zonaOtimaInf" stroke={COLORS.zonaOtimaInf} strokeDasharray="4 3" dot={false} name="Zona Ótima Inf." strokeWidth={1.5} />
+                    <Line type="monotone" dataKey="zonaOtimaSup" stroke={COLORS.zonaOtimaSup} strokeDasharray="4 3" dot={false} name="Zona Ótima Sup." strokeWidth={1.5} />
+                    <Line type="monotone" dataKey="zonaUtilSup" stroke={COLORS.zonaUtilInf} strokeDasharray="8 4" dot={false} name="Zona Utilizável Sup." strokeWidth={1.5} />
                   </>
                 ) : (
                   <>
-                    <Line type="monotone" dataKey="faixaInf" stroke="hsl(var(--primary))" strokeDasharray="5 5" dot={false} name="Faixa Inferior" strokeWidth={1} />
-                    <Line type="monotone" dataKey="faixaSup" stroke="hsl(var(--primary))" strokeDasharray="5 5" dot={false} name="Faixa Superior" strokeWidth={1} />
+                    {ZONAS_GRAUDO.map((zona, zi) => {
+                      const colors = [COLORS.brita0, COLORS.brita1, COLORS.brita2, COLORS.brita3, COLORS.brita4];
+                      const color = colors[zi] || COLORS.brita0;
+                      return (
+                        <Line key={`inf${zi}`} type="monotone" dataKey={`brita${zi}Inf`} stroke={color} strokeDasharray="6 3" dot={false} name={`${zona.nome} Inf.`} strokeWidth={1} connectNulls />
+                      );
+                    })}
+                    {ZONAS_GRAUDO.map((zona, zi) => {
+                      const colors = [COLORS.brita0, COLORS.brita1, COLORS.brita2, COLORS.brita3, COLORS.brita4];
+                      const color = colors[zi] || COLORS.brita0;
+                      return (
+                        <Line key={`sup${zi}`} type="monotone" dataKey={`brita${zi}Sup`} stroke={color} strokeDasharray="6 3" dot={false} name={`${zona.nome} Sup.`} strokeWidth={1} connectNulls />
+                      );
+                    })}
                   </>
                 )}
 
-                <Line type="monotone" dataKey="material" stroke="hsl(var(--destructive))" dot={{ r: 3 }} name="Material Ensaiado" strokeWidth={2} />
+                <Line type="monotone" dataKey="material" stroke={COLORS.material} dot={{ r: 3 }} name="Material Ensaiado" strokeWidth={2.5} connectNulls />
               </ComposedChart>
             </ResponsiveContainer>
           </CardContent>
