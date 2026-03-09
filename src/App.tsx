@@ -291,6 +291,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/ensaios/laudo-cautelar"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <LaudoCautelarPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Administração */}
       <Route

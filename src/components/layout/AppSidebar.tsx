@@ -91,6 +91,7 @@ const servicosExtrasItems = [
 
 const ensaiosItems = [
   { title: 'Traços', url: '/ensaios', icon: FlaskConical },
+  { title: 'Laudo Cautelar', url: '/ensaios/laudo-cautelar', icon: FileText },
 ];
 
 export function AppSidebar() {
