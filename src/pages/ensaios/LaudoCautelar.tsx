@@ -110,6 +110,16 @@ export default function LaudoCautelar() {
       padrao_construtivo: 'Baixo padrão',
       qtd_pavimentos: 1,
       cidade: 'Fortaleza-CE',
+      objetivo: 'Identificar danos já existentes.',
+      caracteristicas_edificacao: 'Constituído por unidades autônomas distribuídas em blocos.',
+      estruturas: 'Concreto armado e alvenaria',
+      vedacao: 'Alvenaria em tijolos cerâmicos furados',
+      acabamento_piso: 'Cômodos em sua maioria com revestimento cerâmico',
+      acabamento_paredes: 'Revestimento argamassa e pintura',
+      cobertura: 'madeira, telhas cerâmicas e revestimento gesso',
+      texto_objetivo: 'Este laudo cautelar de vizinhança tem como objetivo constatar as condições das propriedades adjacentes à obra em construção e já identificar possíveis danos existentes nestas. Essa avaliação é essencial para verificar a integridade das edificações em questão. O resultado é decorrente de uma vistoria técnica realizada por um profissional habilitado e experiente, que avalia minuciosamente as propriedades vizinhas à obra em construção.',
+      texto_metodologia: 'O presente documento é baseado na ABNT (Associação Brasileira de Normas Técnicas) e IBAPE (Instituto Brasileiro de Avaliação e Perícias de Engenharia), seguindo todas as aplicações práticas de vistoria cautelar de vizinhança, metodologia e parâmetros, de forma que atendam os pré-requisitos mínimos estabelecidos para o perfeito funcionamento de todo o sistema existente.',
+      texto_avaliacao_final: 'Diante do exposto neste laudo cautelar de vizinhança, conclui-se que foram realizadas todas as vistorias e análises necessárias para identificar possíveis danos e anomalias no imóvel. As informações e resultados obtidos foram descritos de forma clara e objetiva.\n\nAssim, a contratada atesta que realizou todas as atividades previstas neste contrato, e que o proprietário do imóvel vistoriado teve a oportunidade de acompanhar e esclarecer quaisquer dúvidas sobre as informações obtidas.\n\nPor fim, os responsáveis da contratada, contratante e o proprietário do imóvel vistoriado assinam este laudo cautelar de vizinhança, atestando a sua concordância e aceitação das informações apresentadas.',
     });
     setShowForm(true);
   };
