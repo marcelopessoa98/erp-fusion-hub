@@ -862,6 +862,169 @@ export type Database = {
           },
         ]
       }
+      laudo_cautelar_fotos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          foto_url: string
+          id: string
+          laudo_id: string
+          numero: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          foto_url: string
+          id?: string
+          laudo_id: string
+          numero: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          foto_url?: string
+          id?: string
+          laudo_id?: string
+          numero?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "laudo_cautelar_fotos_laudo_id_fkey"
+            columns: ["laudo_id"]
+            isOneToOne: false
+            referencedRelation: "laudos_cautelares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      laudos_cautelares: {
+        Row: {
+          acabamento_paredes: string | null
+          acabamento_piso: string | null
+          bairro: string | null
+          caracteristicas_edificacao: string | null
+          cidade: string | null
+          cliente_id: string
+          cobertura: string | null
+          created_at: string
+          endereco_vistoriado: string
+          estruturas: string | null
+          filial_id: string
+          id: string
+          imagem_fluxograma: string | null
+          imagem_google_maps: string | null
+          objetivo: string | null
+          obra_id: string
+          padrao_construtivo: string | null
+          qtd_pavimentos: number | null
+          responsavel_id: string | null
+          status: string
+          texto_avaliacao_final: string | null
+          texto_metodologia: string | null
+          texto_nota_previa: string | null
+          texto_objetivo: string | null
+          tipo_imovel: string
+          tipo_ocupacao: string | null
+          updated_at: string
+          user_id: string | null
+          vedacao: string | null
+          vias_acesso: string | null
+        }
+        Insert: {
+          acabamento_paredes?: string | null
+          acabamento_piso?: string | null
+          bairro?: string | null
+          caracteristicas_edificacao?: string | null
+          cidade?: string | null
+          cliente_id: string
+          cobertura?: string | null
+          created_at?: string
+          endereco_vistoriado?: string
+          estruturas?: string | null
+          filial_id: string
+          id?: string
+          imagem_fluxograma?: string | null
+          imagem_google_maps?: string | null
+          objetivo?: string | null
+          obra_id: string
+          padrao_construtivo?: string | null
+          qtd_pavimentos?: number | null
+          responsavel_id?: string | null
+          status?: string
+          texto_avaliacao_final?: string | null
+          texto_metodologia?: string | null
+          texto_nota_previa?: string | null
+          texto_objetivo?: string | null
+          tipo_imovel?: string
+          tipo_ocupacao?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vedacao?: string | null
+          vias_acesso?: string | null
+        }
+        Update: {
+          acabamento_paredes?: string | null
+          acabamento_piso?: string | null
+          bairro?: string | null
+          caracteristicas_edificacao?: string | null
+          cidade?: string | null
+          cliente_id?: string
+          cobertura?: string | null
+          created_at?: string
+          endereco_vistoriado?: string
+          estruturas?: string | null
+          filial_id?: string
+          id?: string
+          imagem_fluxograma?: string | null
+          imagem_google_maps?: string | null
+          objetivo?: string | null
+          obra_id?: string
+          padrao_construtivo?: string | null
+          qtd_pavimentos?: number | null
+          responsavel_id?: string | null
+          status?: string
+          texto_avaliacao_final?: string | null
+          texto_metodologia?: string | null
+          texto_nota_previa?: string | null
+          texto_objetivo?: string | null
+          tipo_imovel?: string
+          tipo_ocupacao?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vedacao?: string | null
+          vias_acesso?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "laudos_cautelares_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "laudos_cautelares_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "laudos_cautelares_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "laudos_cautelares_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "equipe_tecnica"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materiais: {
         Row: {
           categoria_id: string | null
