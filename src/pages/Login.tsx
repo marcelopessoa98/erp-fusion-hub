@@ -30,55 +30,51 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-end relative overflow-hidden px-16">
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${fundoLogin})` }}
       />
 
-      {/* Dark overlay with gradient towards right */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/30 to-black/70" />
+      {/* Dark overlay with gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-black/20 to-black/50" />
 
-      {/* Login panel - right side */}
-      <div className="relative z-10 ml-auto w-full max-w-md flex flex-col justify-center px-8 py-12"
+      {/* Floating login card */}
+      <div
+        className="relative z-10 w-full max-w-sm rounded-2xl px-8 py-10"
         style={{
-          background: 'linear-gradient(135deg, rgba(30,30,30,0.92) 0%, rgba(20,20,20,0.96) 100%)',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '-10px 0 40px rgba(0,0,0,0.5)',
+          background: 'linear-gradient(135deg, rgba(30,30,30,0.88) 0%, rgba(20,20,20,0.94) 100%)',
+          backdropFilter: 'blur(24px)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)',
         }}
       >
         {/* Red accent top bar */}
-        <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(90deg, #dc2626, #b91c1c, #991b1b)' }} />
+        <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full" style={{ background: 'linear-gradient(90deg, #dc2626, #b91c1c, #991b1b)' }} />
 
         {/* Logo */}
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-28 h-28 rounded-2xl p-3 mb-6 flex items-center justify-center"
+        <div className="flex flex-col items-center mb-8">
+          <div
+            className="w-24 h-24 rounded-2xl p-3 mb-5 flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             <img src={loginLogo} alt="Concrefuji" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#f5f5f5' }}>
-            ERP Integrado
-          </h1>
-          <p className="text-sm mt-1" style={{ color: '#a3a3a3' }}>
-            Sistema de Gestão Empresarial
-          </p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: '#f5f5f5' }}>ERP Integrado</h1>
+          <p className="text-xs mt-1" style={{ color: '#a3a3a3' }}>Sistema de Gestão Empresarial</p>
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(220,38,38,0.4), transparent)' }} />
           <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#dc2626' }}>Acesso</span>
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(220,38,38,0.4), transparent)' }} />
         </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#a3a3a3' }}>
-              E-mail
-            </Label>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#a3a3a3' }}>E-mail</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#737373' }} />
               <Input
@@ -88,19 +84,13 @@ const Login = () => {
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
-                className="pl-10 h-11 border-0 text-sm"
-                style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  color: '#f5f5f5',
-                  borderRadius: '8px',
-                }}
+                className="pl-10 h-10 border-0 text-sm"
+                style={{ background: 'rgba(255,255,255,0.07)', color: '#f5f5f5', borderRadius: '8px' }}
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#a3a3a3' }}>
-              Senha
-            </Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#a3a3a3' }}>Senha</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#737373' }} />
               <Input
@@ -110,18 +100,14 @@ const Login = () => {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
-                className="pl-10 h-11 border-0 text-sm"
-                style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  color: '#f5f5f5',
-                  borderRadius: '8px',
-                }}
+                className="pl-10 h-10 border-0 text-sm"
+                style={{ background: 'rgba(255,255,255,0.07)', color: '#f5f5f5', borderRadius: '8px' }}
               />
             </div>
           </div>
           <Button
             type="submit"
-            className="w-full h-11 font-semibold text-sm border-0 mt-2"
+            className="w-full h-10 font-semibold text-sm border-0 mt-1"
             disabled={loading}
             style={{
               background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
@@ -136,14 +122,9 @@ const Login = () => {
         </form>
 
         {/* Footer */}
-        <div className="mt-10 text-center">
-          <p className="text-xs" style={{ color: '#525252' }}>
-            © 2026 Concrefuji · Todos os direitos reservados
-          </p>
+        <div className="mt-8 text-center">
+          <p className="text-xs" style={{ color: '#525252' }}>© 2026 Concrefuji · Todos os direitos reservados</p>
         </div>
-
-        {/* Red accent bottom bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(90deg, #991b1b, #dc2626, #991b1b)' }} />
       </div>
     </div>
   );
