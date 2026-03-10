@@ -4,49 +4,83 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail, Lock } from 'lucide-react';
 import loginLogo from '@/assets/login-logo.png';
+import fundoLogin from '@/assets/fundo-login.png';
 
 const Login = () => {
   const navigate = useNavigate();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
-
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     const { error } = await signIn(loginEmail, loginPassword);
-    
     if (error) {
       toast.error('Erro ao fazer login', { description: error.message });
     } else {
       toast.success('Login realizado com sucesso!');
       navigate('/');
     }
-    
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center space-y-4">
-          <img src={loginLogo} alt="Concrefuji" className="mx-auto w-24 h-24 rounded-2xl object-contain" />
-          <div>
-            <CardTitle className="text-2xl font-bold">ERP Integrado</CardTitle>
-            <CardDescription>Sistema de Gestão Empresarial</CardDescription>
+    <div className="min-h-screen flex relative overflow-hidden">
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${fundoLogin})` }}
+      />
+
+      {/* Dark overlay with gradient towards right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/30 to-black/70" />
+
+      {/* Login panel - right side */}
+      <div className="relative z-10 ml-auto w-full max-w-md flex flex-col justify-center px-8 py-12"
+        style={{
+          background: 'linear-gradient(135deg, rgba(30,30,30,0.92) 0%, rgba(20,20,20,0.96) 100%)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '-10px 0 40px rgba(0,0,0,0.5)',
+        }}
+      >
+        {/* Red accent top bar */}
+        <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(90deg, #dc2626, #b91c1c, #991b1b)' }} />
+
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="w-28 h-28 rounded-2xl p-3 mb-6 flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))', border: '1px solid rgba(255,255,255,0.1)' }}
+          >
+            <img src={loginLogo} alt="Concrefuji" className="w-full h-full object-contain" />
           </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-email">E-mail</Label>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#f5f5f5' }}>
+            ERP Integrado
+          </h1>
+          <p className="text-sm mt-1" style={{ color: '#a3a3a3' }}>
+            Sistema de Gestão Empresarial
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(220,38,38,0.4), transparent)' }} />
+          <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#dc2626' }}>Acesso</span>
+          <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(220,38,38,0.4), transparent)' }} />
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#a3a3a3' }}>
+              E-mail
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#737373' }} />
               <Input
                 id="login-email"
                 type="email"
@@ -54,10 +88,21 @@ const Login = () => {
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
+                className="pl-10 h-11 border-0 text-sm"
+                style={{
+                  background: 'rgba(255,255,255,0.07)',
+                  color: '#f5f5f5',
+                  borderRadius: '8px',
+                }}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="login-password">Senha</Label>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#a3a3a3' }}>
+              Senha
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#737373' }} />
               <Input
                 id="login-password"
                 type="password"
@@ -65,15 +110,41 @@ const Login = () => {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
+                className="pl-10 h-11 border-0 text-sm"
+                style={{
+                  background: 'rgba(255,255,255,0.07)',
+                  color: '#f5f5f5',
+                  borderRadius: '8px',
+                }}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Entrar
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <Button
+            type="submit"
+            className="w-full h-11 font-semibold text-sm border-0 mt-2"
+            disabled={loading}
+            style={{
+              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+              color: '#ffffff',
+              borderRadius: '8px',
+              boxShadow: '0 4px 15px rgba(220,38,38,0.3)',
+            }}
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Entrar
+          </Button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-10 text-center">
+          <p className="text-xs" style={{ color: '#525252' }}>
+            © 2025 Concrefuji · Todos os direitos reservados
+          </p>
+        </div>
+
+        {/* Red accent bottom bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(90deg, #991b1b, #dc2626, #991b1b)' }} />
+      </div>
     </div>
   );
 };
