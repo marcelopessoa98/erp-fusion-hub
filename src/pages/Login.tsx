@@ -138,7 +138,7 @@ const Login = () => {
         {/* Footer */}
         <div className="mt-10 text-center">
           <p className="text-xs" style={{ color: '#525252' }}>
-            © 2025 Concrefuji · Todos os direitos reservados
+            © 2026 Concrefuji · Todos os direitos reservados · Todos os direitos reservados
           </p>
         </div>
 
