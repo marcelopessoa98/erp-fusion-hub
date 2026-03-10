@@ -258,9 +258,9 @@ export default function ServicosExtras() {
 
   const getStatusPagamentoBadge = (status: string) => {
     return status === 'pago' ? (
-      <Badge variant="default"><DollarSign className="h-3 w-3 mr-1" /> Pago</Badge>
+      <Badge className="bg-green-600 text-white border-green-600 hover:bg-green-700"><DollarSign className="h-3 w-3 mr-1" /> Pago</Badge>
     ) : (
-      <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" /> Pendente</Badge>
+      <Badge className="bg-red-600 text-white border-red-600 hover:bg-red-700"><AlertCircle className="h-3 w-3 mr-1" /> Pendente</Badge>
     );
   };
 
