@@ -42,11 +42,11 @@ const Login = () => {
 
       {/* Floating login card - light theme to match background */}
       <div
-        className="relative z-10 w-full max-w-sm rounded-2xl px-8 py-10"
+        className="relative z-10 w-full max-w-xs rounded-2xl px-6 py-8"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(245,245,245,0.96) 100%)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(245,245,245,0.65) 100%)',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04)',
+          boxShadow: '0 16px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)',
         }}
       >
         {/* Red accent top bar */}
