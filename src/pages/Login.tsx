@@ -30,7 +30,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-end relative overflow-hidden px-8 md:px-16">
+    <div className="min-h-screen flex justify-end relative overflow-hidden px-8 md:px-16" style={{ paddingTop: '8vh', paddingBottom: 'calc(15vh + 8vh)' }}>
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -40,11 +40,11 @@ const Login = () => {
       {/* Subtle overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white/40" />
 
-      {/* Floating login card - smaller and more transparent */}
+      {/* Floating login card - compact */}
       <div
-        className="relative z-10 w-full max-w-xs rounded-2xl px-6 py-6"
+        className="relative z-10 w-full max-w-[280px] rounded-2xl px-5 py-5 my-auto"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(245,245,245,0.4) 100%)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(245,245,245,0.35) 100%)',
           backdropFilter: 'blur(20px)',
           boxShadow: '0 16px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)',
         }}
@@ -53,30 +53,30 @@ const Login = () => {
         <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full" style={{ background: 'linear-gradient(90deg, #dc2626, #b91c1c, #991b1b)' }} />
 
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-4">
           <div
-            className="w-24 h-24 rounded-2xl p-3 mb-5 flex items-center justify-center"
+            className="w-16 h-16 rounded-xl p-2 mb-3 flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.05), rgba(0,0,0,0.02))', border: '1px solid rgba(0,0,0,0.08)' }}
           >
             <img src={loginLogo} alt="Concrefuji" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: '#1a1a1a' }}>ERP Integrado</h1>
-          <p className="text-xs mt-1" style={{ color: '#737373' }}>Sistema de Gestão Empresarial</p>
+          <h1 className="text-lg font-bold tracking-tight" style={{ color: '#1a1a1a' }}>ERP Integrado</h1>
+          <p className="text-[11px] mt-0.5" style={{ color: '#737373' }}>Sistema de Gestão Empresarial</p>
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(220,38,38,0.4), transparent)' }} />
-          <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#dc2626' }}>Acesso</span>
+          <span className="text-[10px] font-medium uppercase tracking-widest" style={{ color: '#dc2626' }}>Acesso</span>
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(220,38,38,0.4), transparent)' }} />
         </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#525252' }}>E-mail</Label>
+        <form onSubmit={handleLogin} className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="login-email" className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#525252' }}>E-mail</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#a3a3a3' }} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#a3a3a3' }} />
               <Input
                 id="login-email"
                 type="email"
@@ -84,15 +84,15 @@ const Login = () => {
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
-                className="pl-10 h-10 border text-sm"
+                className="pl-9 h-9 border text-sm"
                 style={{ background: 'rgba(0,0,0,0.03)', color: '#1a1a1a', borderRadius: '8px', borderColor: 'rgba(0,0,0,0.1)' }}
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#525252' }}>Senha</Label>
+          <div className="space-y-1">
+            <Label htmlFor="login-password" className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#525252' }}>Senha</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#a3a3a3' }} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#a3a3a3' }} />
               <Input
                 id="login-password"
                 type="password"
@@ -100,14 +100,14 @@ const Login = () => {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
-                className="pl-10 h-10 border text-sm"
+                className="pl-9 h-9 border text-sm"
                 style={{ background: 'rgba(0,0,0,0.03)', color: '#1a1a1a', borderRadius: '8px', borderColor: 'rgba(0,0,0,0.1)' }}
               />
             </div>
           </div>
           <Button
             type="submit"
-            className="w-full h-10 font-semibold text-sm border-0 mt-1"
+            className="w-full h-9 font-semibold text-sm border-0 mt-1"
             disabled={loading}
             style={{
               background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
@@ -122,8 +122,8 @@ const Login = () => {
         </form>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs" style={{ color: '#a3a3a3' }}>© 2026 Concrefuji · Todos os direitos reservados</p>
+        <div className="mt-4 text-center">
+          <p className="text-[10px]" style={{ color: '#a3a3a3' }}>© 2026 Concrefuji · Todos os direitos reservados</p>
         </div>
       </div>
     </div>
