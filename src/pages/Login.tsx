@@ -40,11 +40,11 @@ const Login = () => {
       {/* Subtle overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white/40" />
 
-      {/* Floating login card - light theme to match background */}
+      {/* Floating login card - smaller and more transparent */}
       <div
-        className="relative z-10 w-full max-w-xs rounded-2xl px-6 py-8"
+        className="relative z-10 w-full max-w-xs rounded-2xl px-6 py-6"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(245,245,245,0.65) 100%)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(245,245,245,0.4) 100%)',
           backdropFilter: 'blur(20px)',
           boxShadow: '0 16px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)',
         }}
