@@ -82,7 +82,10 @@ export default function ServicosExtras() {
     data_recibo: formatDateToString(new Date()),
   });
 
-  const { recibos, createRecibo, deleteRecibo: deleteReciboMutation } = useRecibos();
+  const [isEditReciboDialogOpen, setIsEditReciboDialogOpen] = useState(false);
+  const [editingRecibo, setEditingRecibo] = useState<Recibo | null>(null);
+
+  const { recibos, createRecibo, updateRecibo, deleteRecibo: deleteReciboMutation } = useRecibos();
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
