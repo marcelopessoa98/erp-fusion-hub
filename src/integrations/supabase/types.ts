@@ -317,6 +317,39 @@ export type Database = {
           },
         ]
       }
+      categorias_financeiras: {
+        Row: {
+          ativo: boolean
+          cor: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categorias_material: {
         Row: {
           created_at: string
@@ -373,6 +406,88 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      cobrancas_clientes: {
+        Row: {
+          ano_referencia: number
+          cliente_id: string
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string
+          dia_vencimento: number
+          filial_id: string | null
+          forma_pagamento: string | null
+          id: string
+          mes_referencia: number
+          obra_id: string | null
+          observacoes: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          valor: number
+        }
+        Insert: {
+          ano_referencia: number
+          cliente_id: string
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao: string
+          dia_vencimento?: number
+          filial_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          mes_referencia: number
+          obra_id?: string | null
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+        }
+        Update: {
+          ano_referencia?: number
+          cliente_id?: string
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          dia_vencimento?: number
+          filial_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          mes_referencia?: number
+          obra_id?: string | null
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cobrancas_clientes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobrancas_clientes_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobrancas_clientes_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contrato_config_itens: {
         Row: {
@@ -855,6 +970,98 @@ export type Database = {
           },
           {
             foreignKeyName: "horas_extras_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lancamentos_financeiros: {
+        Row: {
+          categoria_id: string | null
+          cliente_id: string | null
+          comprovante_url: string | null
+          created_at: string
+          data_lancamento: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          descricao: string
+          filial_id: string | null
+          forma_pagamento: string | null
+          id: string
+          obra_id: string | null
+          observacoes: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string | null
+          valor: number
+        }
+        Insert: {
+          categoria_id?: string | null
+          cliente_id?: string | null
+          comprovante_url?: string | null
+          created_at?: string
+          data_lancamento?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          descricao: string
+          filial_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          obra_id?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+        }
+        Update: {
+          categoria_id?: string | null
+          cliente_id?: string | null
+          comprovante_url?: string | null
+          created_at?: string
+          data_lancamento?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          descricao?: string
+          filial_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          obra_id?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_financeiros_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_financeiras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_obra_id_fkey"
             columns: ["obra_id"]
             isOneToOne: false
             referencedRelation: "obras"
@@ -1462,6 +1669,63 @@ export type Database = {
           },
           {
             foreignKeyName: "obras_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planejamento_financeiro: {
+        Row: {
+          ano: number
+          categoria_id: string | null
+          created_at: string
+          filial_id: string | null
+          id: string
+          mes: number
+          observacoes: string | null
+          updated_at: string
+          user_id: string | null
+          valor_planejado: number
+          valor_realizado: number
+        }
+        Insert: {
+          ano: number
+          categoria_id?: string | null
+          created_at?: string
+          filial_id?: string | null
+          id?: string
+          mes: number
+          observacoes?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor_planejado?: number
+          valor_realizado?: number
+        }
+        Update: {
+          ano?: number
+          categoria_id?: string | null
+          created_at?: string
+          filial_id?: string | null
+          id?: string
+          mes?: number
+          observacoes?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor_planejado?: number
+          valor_realizado?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planejamento_financeiro_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_financeiras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planejamento_financeiro_filial_id_fkey"
             columns: ["filial_id"]
             isOneToOne: false
             referencedRelation: "filiais"
