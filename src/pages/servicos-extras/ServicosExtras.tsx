@@ -44,9 +44,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Filter, Edit, Trash2, Wrench, Check, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { Plus, Filter, Edit, Trash2, Wrench, Check, Clock, DollarSign, AlertCircle, FileText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDateToString, formatDateBR } from '@/lib/dateUtils';
+import { useRecibos, Recibo } from '@/hooks/useRecibos';
+import { gerarReciboPDF } from '@/lib/reciboPdfExport';
 
 export default function ServicosExtras() {
   const { profile, role, user } = useAuth();
@@ -67,6 +69,20 @@ export default function ServicosExtras() {
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
   const [selectedServico, setSelectedServico] = useState<ServicoExtra | null>(null);
   const [deleteServico, setDeleteServico] = useState<ServicoExtra | null>(null);
+
+  // Recibo states
+  const [isReciboDialogOpen, setIsReciboDialogOpen] = useState(false);
+  const [reciboServico, setReciboServico] = useState<ServicoExtra | null>(null);
+  const [reciboFormData, setReciboFormData] = useState({
+    cliente_nome: '',
+    cliente_cnpj: '',
+    valor: '',
+    valor_extenso: '',
+    descricao_servico: '',
+    data_recibo: formatDateToString(new Date()),
+  });
+
+  const { recibos, createRecibo, deleteRecibo: deleteReciboMutation } = useRecibos();
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -246,6 +262,64 @@ export default function ServicosExtras() {
     setFilterStatusServico('all');
     setFilterMes(String(currentMonth));
     setFilterAno(String(currentYear));
+  };
+
+  const openReciboDialog = (servico: ServicoExtra) => {
+    setReciboServico(servico);
+    // Check if there's already a recibo for this service
+    const existingRecibo = recibos?.find(r => r.servico_extra_id === servico.id);
+    if (existingRecibo) {
+      // Export directly
+      gerarReciboPDF(existingRecibo);
+      return;
+    }
+    setReciboFormData({
+      cliente_nome: servico.cliente?.nome || '',
+      cliente_cnpj: '',
+      valor: String(servico.valor || ''),
+      valor_extenso: '',
+      descricao_servico: servico.descricao_servico || '',
+      data_recibo: formatDateToString(new Date()),
+    });
+    setIsReciboDialogOpen(true);
+  };
+
+  const handleSaveRecibo = async () => {
+    if (!reciboServico || !reciboFormData.cliente_nome || !reciboFormData.cliente_cnpj || !reciboFormData.valor) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha o nome do cliente, CNPJ e valor.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const reciboData = {
+      servico_extra_id: reciboServico.id,
+      filial_id: reciboServico.filial_id,
+      cliente_nome: reciboFormData.cliente_nome,
+      cliente_cnpj: reciboFormData.cliente_cnpj,
+      valor: parseFloat(reciboFormData.valor),
+      valor_extenso: reciboFormData.valor_extenso,
+      descricao_servico: reciboFormData.descricao_servico,
+      data_recibo: reciboFormData.data_recibo,
+      user_id: user?.id || null,
+    };
+
+    const result = await createRecibo.mutateAsync(reciboData);
+    setIsReciboDialogOpen(false);
+    setReciboServico(null);
+    // Auto-export PDF
+    if (result) {
+      gerarReciboPDF(result as Recibo);
+    }
+  };
+
+  const handleExportExistingRecibo = (servicoId: string) => {
+    const existingRecibo = recibos?.find(r => r.servico_extra_id === servicoId);
+    if (existingRecibo) {
+      gerarReciboPDF(existingRecibo);
+    }
   };
 
   const getStatusServicoBadge = (status: string) => {
@@ -554,6 +628,27 @@ export default function ServicosExtras() {
                       <TableCell>{servico.usuario_nome}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {servico.status_pagamento === 'pago' && (
+                            recibos?.find(r => r.servico_extra_id === servico.id) ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleExportExistingRecibo(servico.id)}
+                                title="Exportar Recibo PDF"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openReciboDialog(servico)}
+                                title="Gerar Recibo"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -743,6 +838,84 @@ export default function ServicosExtras() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Recibo Dialog */}
+      <Dialog open={isReciboDialogOpen} onOpenChange={setIsReciboDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gerar Recibo</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="space-y-1">
+              <Label className="text-sm">Nome do Cliente *</Label>
+              <Input
+                value={reciboFormData.cliente_nome}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, cliente_nome: e.target.value })}
+                placeholder="Nome completo ou razão social"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">CNPJ do Cliente *</Label>
+              <Input
+                value={reciboFormData.cliente_cnpj}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, cliente_cnpj: e.target.value })}
+                placeholder="00.000.000/0000-00"
+                className="h-9"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-sm">Valor (R$) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={reciboFormData.valor}
+                  onChange={(e) => setReciboFormData({ ...reciboFormData, valor: e.target.value })}
+                  placeholder="0,00"
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm">Data do Recibo *</Label>
+                <Input
+                  type="date"
+                  value={reciboFormData.data_recibo}
+                  onChange={(e) => setReciboFormData({ ...reciboFormData, data_recibo: e.target.value })}
+                  className="h-9"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Valor por Extenso *</Label>
+              <Input
+                value={reciboFormData.valor_extenso}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, valor_extenso: e.target.value })}
+                placeholder="Ex: cento e oitenta reais"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Descrição do Serviço *</Label>
+              <Textarea
+                value={reciboFormData.descricao_servico}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, descricao_servico: e.target.value })}
+                placeholder="Referente a..."
+                rows={2}
+                className="min-h-[60px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" size="sm" onClick={() => setIsReciboDialogOpen(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleSaveRecibo} disabled={createRecibo.isPending}>
+              <FileText className="h-4 w-4 mr-2" />
+              {createRecibo.isPending ? 'Salvando...' : 'Salvar e Exportar PDF'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
