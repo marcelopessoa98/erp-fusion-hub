@@ -118,9 +118,11 @@ export function AppSidebar() {
     return location.pathname === url;
   };
 
-  const renderMenuItems = (items: { title: string; url: string; icon: React.ComponentType<{ className?: string }> }[]) => (
+  const renderMenuItems = (items: { title: string; url: string; icon: React.ComponentType<{ className?: string }>; ceoOnly?: boolean }[]) => (
     <SidebarMenu>
-      {items.map((item) => {
+      {items
+        .filter(item => !item.ceoOnly || role === 'ceo' || role === 'admin')
+        .map((item) => {
         const active = isItemActive(item.url);
         return (
           <SidebarMenuItem key={item.title}>
