@@ -44,9 +44,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Filter, Edit, Trash2, Wrench, Check, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { Plus, Filter, Edit, Trash2, Wrench, Check, Clock, DollarSign, AlertCircle, FileText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDateToString, formatDateBR } from '@/lib/dateUtils';
+import { useRecibos, Recibo } from '@/hooks/useRecibos';
+import { gerarReciboPDF } from '@/lib/reciboPdfExport';
 
 export default function ServicosExtras() {
   const { profile, role, user } = useAuth();
