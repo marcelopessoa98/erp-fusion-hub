@@ -34,6 +34,7 @@ import SolicitacoesCompras from "./pages/financeiro/SolicitacoesCompras";
 import Ensaios from "./pages/ensaios/Ensaios";
 import LaudoCautelarPage from "./pages/ensaios/LaudoCautelar";
 import EquipeTecnica from "./pages/cadastros/EquipeTecnica";
+import GestaoFinanceira from "./pages/financeiro/GestaoFinanceira";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
