@@ -461,6 +461,7 @@ const Usuarios = () => {
                     <SelectItem value="operador">Operador</SelectItem>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
