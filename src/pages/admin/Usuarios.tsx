@@ -391,6 +391,8 @@ const Usuarios = () => {
         return 'Administrador';
       case 'gerente':
         return 'Gerente';
+      case 'ceo':
+        return 'CEO';
       default:
         return 'Operador';
     }
@@ -459,6 +461,7 @@ const Usuarios = () => {
                     <SelectItem value="operador">Operador</SelectItem>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -541,6 +544,7 @@ const Usuarios = () => {
                           <SelectItem value="operador">Operador</SelectItem>
                           <SelectItem value="gerente">Gerente</SelectItem>
                           <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="ceo">CEO</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>

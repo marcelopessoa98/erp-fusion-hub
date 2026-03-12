@@ -40,6 +40,7 @@ import {
   ShoppingCart,
   FlaskConical,
   GraduationCap,
+  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +66,7 @@ const financeiroItems = [
   { title: 'Medições', url: '/financeiro/medicoes', icon: ClipboardList },
   { title: 'Propostas', url: '/financeiro/propostas', icon: FileSignature },
   { title: 'Compras', url: '/financeiro/compras', icon: ShoppingCart },
+  { title: 'Gestão Financeira', url: '/financeiro/gestao', icon: DollarSign, ceoOnly: true },
 ];
 
 
@@ -116,9 +118,11 @@ export function AppSidebar() {
     return location.pathname === url;
   };
 
-  const renderMenuItems = (items: { title: string; url: string; icon: React.ComponentType<{ className?: string }> }[]) => (
+  const renderMenuItems = (items: { title: string; url: string; icon: React.ComponentType<{ className?: string }>; ceoOnly?: boolean }[]) => (
     <SidebarMenu>
-      {items.map((item) => {
+      {items
+        .filter(item => !item.ceoOnly || role === 'ceo' || role === 'admin')
+        .map((item) => {
         const active = isItemActive(item.url);
         return (
           <SidebarMenuItem key={item.title}>
