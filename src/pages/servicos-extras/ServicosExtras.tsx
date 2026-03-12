@@ -325,6 +325,49 @@ export default function ServicosExtras() {
     }
   };
 
+  const openEditReciboDialog = (servicoId: string) => {
+    const existingRecibo = recibos?.find(r => r.servico_extra_id === servicoId);
+    if (existingRecibo) {
+      setEditingRecibo(existingRecibo);
+      setReciboFormData({
+        cliente_nome: existingRecibo.cliente_nome,
+        cliente_cnpj: existingRecibo.cliente_cnpj,
+        valor: String(existingRecibo.valor),
+        valor_extenso: existingRecibo.valor_extenso,
+        descricao_servico: existingRecibo.descricao_servico,
+        data_recibo: existingRecibo.data_recibo,
+      });
+      setIsEditReciboDialogOpen(true);
+    }
+  };
+
+  const handleUpdateRecibo = async () => {
+    if (!editingRecibo || !reciboFormData.cliente_nome || !reciboFormData.cliente_cnpj || !reciboFormData.valor) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha o nome do cliente, CNPJ e valor.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const result = await updateRecibo.mutateAsync({
+      id: editingRecibo.id,
+      cliente_nome: reciboFormData.cliente_nome,
+      cliente_cnpj: reciboFormData.cliente_cnpj,
+      valor: parseFloat(reciboFormData.valor),
+      valor_extenso: reciboFormData.valor_extenso,
+      descricao_servico: reciboFormData.descricao_servico,
+      data_recibo: reciboFormData.data_recibo,
+    });
+
+    setIsEditReciboDialogOpen(false);
+    setEditingRecibo(null);
+    if (result) {
+      gerarReciboPDF(result as Recibo);
+    }
+  };
+
   const getStatusServicoBadge = (status: string) => {
     return status === 'finalizado' ? (
       <Badge variant="default"><Check className="h-3 w-3 mr-1" /> Finalizado</Badge>
