@@ -66,6 +66,7 @@ const financeiroItems = [
   { title: 'Medições', url: '/financeiro/medicoes', icon: ClipboardList },
   { title: 'Propostas', url: '/financeiro/propostas', icon: FileSignature },
   { title: 'Compras', url: '/financeiro/compras', icon: ShoppingCart },
+  { title: 'Gestão Financeira', url: '/financeiro/gestao', icon: DollarSign, ceoOnly: true },
 ];
 
 
