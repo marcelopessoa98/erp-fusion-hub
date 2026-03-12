@@ -80,7 +80,7 @@ export function useGestaoFinanceira() {
 
   const createCategoria = useMutation({
     mutationFn: async (cat: Partial<CategoriaFinanceira>) => {
-      const { data, error } = await supabase.from('categorias_financeiras').insert(cat).select().single();
+      const { data, error } = await supabase.from('categorias_financeiras').insert(cat as any).select().single();
       if (error) throw error;
       return data;
     },
