@@ -23,12 +23,18 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   if (requiredRole) {
-    const roleHierarchy: Record<string, number> = { ceo: 4, admin: 3, gerente: 2, operador: 1 };
-    const userLevel = role ? roleHierarchy[role] : 0;
-    const requiredLevel = roleHierarchy[requiredRole];
-
-    if (userLevel < requiredLevel) {
-      return <Navigate to="/" replace />;
+    // CEO is a special role - only CEO and admin can access CEO-required pages
+    if (requiredRole === 'ceo') {
+      if (role !== 'ceo' && role !== 'admin') {
+        return <Navigate to="/" replace />;
+      }
+    } else {
+      const roleHierarchy: Record<string, number> = { admin: 3, gerente: 2, operador: 1 };
+      const userLevel = role ? (roleHierarchy[role] || 0) : 0;
+      const requiredLevel = roleHierarchy[requiredRole];
+      if (userLevel < requiredLevel) {
+        return <Navigate to="/" replace />;
+      }
     }
   }
 
