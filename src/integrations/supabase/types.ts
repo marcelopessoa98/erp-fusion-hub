@@ -1679,6 +1679,66 @@ export type Database = {
           },
         ]
       }
+      recibos: {
+        Row: {
+          cliente_cnpj: string
+          cliente_nome: string
+          created_at: string
+          data_recibo: string
+          descricao_servico: string
+          filial_id: string
+          id: string
+          servico_extra_id: string | null
+          updated_at: string
+          user_id: string | null
+          valor: number
+          valor_extenso: string
+        }
+        Insert: {
+          cliente_cnpj: string
+          cliente_nome: string
+          created_at?: string
+          data_recibo?: string
+          descricao_servico?: string
+          filial_id: string
+          id?: string
+          servico_extra_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+          valor_extenso?: string
+        }
+        Update: {
+          cliente_cnpj?: string
+          cliente_nome?: string
+          created_at?: string
+          data_recibo?: string
+          descricao_servico?: string
+          filial_id?: string
+          id?: string
+          servico_extra_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+          valor_extenso?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibos_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_servico_extra_id_fkey"
+            columns: ["servico_extra_id"]
+            isOneToOne: false
+            referencedRelation: "servicos_extras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servicos_extras: {
         Row: {
           cliente_id: string
