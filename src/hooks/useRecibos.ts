@@ -66,6 +66,34 @@ export function useRecibos(servicoExtraId?: string) {
     },
   });
 
+  const updateRecibo = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Recibo> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('recibos')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recibos'] });
+      toast({
+        title: 'Recibo atualizado',
+        description: 'O recibo foi atualizado com sucesso.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao atualizar recibo',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const deleteRecibo = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('recibos').delete().eq('id', id);
@@ -87,5 +115,5 @@ export function useRecibos(servicoExtraId?: string) {
     },
   });
 
-  return { recibos, isLoading, createRecibo, deleteRecibo };
+  return { recibos, isLoading, createRecibo, updateRecibo, deleteRecibo };
 }
