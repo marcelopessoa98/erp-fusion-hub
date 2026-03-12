@@ -70,6 +70,20 @@ export default function ServicosExtras() {
   const [selectedServico, setSelectedServico] = useState<ServicoExtra | null>(null);
   const [deleteServico, setDeleteServico] = useState<ServicoExtra | null>(null);
 
+  // Recibo states
+  const [isReciboDialogOpen, setIsReciboDialogOpen] = useState(false);
+  const [reciboServico, setReciboServico] = useState<ServicoExtra | null>(null);
+  const [reciboFormData, setReciboFormData] = useState({
+    cliente_nome: '',
+    cliente_cnpj: '',
+    valor: '',
+    valor_extenso: '',
+    descricao_servico: '',
+    data_recibo: formatDateToString(new Date()),
+  });
+
+  const { recibos, createRecibo, deleteRecibo: deleteReciboMutation } = useRecibos();
+
   // Edit form state
   const [editFormData, setEditFormData] = useState({
     filial_id: '',
