@@ -23,7 +23,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   if (requiredRole) {
-    const roleHierarchy = { admin: 3, gerente: 2, operador: 1 };
+    const roleHierarchy: Record<string, number> = { ceo: 4, admin: 3, gerente: 2, operador: 1 };
     const userLevel = role ? roleHierarchy[role] : 0;
     const requiredLevel = roleHierarchy[requiredRole];
 

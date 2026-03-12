@@ -142,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     isAdmin: role === 'admin',
     isGerente: role === 'gerente' || role === 'admin',
+    isCeo: role === 'ceo',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
