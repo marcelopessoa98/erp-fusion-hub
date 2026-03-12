@@ -628,6 +628,27 @@ export default function ServicosExtras() {
                       <TableCell>{servico.usuario_nome}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {servico.status_pagamento === 'pago' && (
+                            recibos?.find(r => r.servico_extra_id === servico.id) ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleExportExistingRecibo(servico.id)}
+                                title="Exportar Recibo PDF"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openReciboDialog(servico)}
+                                title="Gerar Recibo"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
