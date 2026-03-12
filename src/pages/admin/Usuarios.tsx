@@ -391,6 +391,8 @@ const Usuarios = () => {
         return 'Administrador';
       case 'gerente':
         return 'Gerente';
+      case 'ceo':
+        return 'CEO';
       default:
         return 'Operador';
     }
