@@ -280,6 +280,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/financeiro/gestao"
+        element={
+          <ProtectedRoute requiredRole="ceo">
+            <AppLayout>
+              <GestaoFinanceira />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
       
       {/* Ensaios */}
       <Route
