@@ -264,7 +264,65 @@ export default function ServicosExtras() {
     setFilterAno(String(currentYear));
   };
 
-  const getStatusServicoBadge = (status: string) => {
+  const openReciboDialog = (servico: ServicoExtra) => {
+    setReciboServico(servico);
+    // Check if there's already a recibo for this service
+    const existingRecibo = recibos?.find(r => r.servico_extra_id === servico.id);
+    if (existingRecibo) {
+      // Export directly
+      gerarReciboPDF(existingRecibo);
+      return;
+    }
+    setReciboFormData({
+      cliente_nome: servico.cliente?.nome || '',
+      cliente_cnpj: '',
+      valor: String(servico.valor || ''),
+      valor_extenso: '',
+      descricao_servico: servico.descricao_servico || '',
+      data_recibo: formatDateToString(new Date()),
+    });
+    setIsReciboDialogOpen(true);
+  };
+
+  const handleSaveRecibo = async () => {
+    if (!reciboServico || !reciboFormData.cliente_nome || !reciboFormData.cliente_cnpj || !reciboFormData.valor) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha o nome do cliente, CNPJ e valor.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const reciboData = {
+      servico_extra_id: reciboServico.id,
+      filial_id: reciboServico.filial_id,
+      cliente_nome: reciboFormData.cliente_nome,
+      cliente_cnpj: reciboFormData.cliente_cnpj,
+      valor: parseFloat(reciboFormData.valor),
+      valor_extenso: reciboFormData.valor_extenso,
+      descricao_servico: reciboFormData.descricao_servico,
+      data_recibo: reciboFormData.data_recibo,
+      user_id: user?.id || null,
+    };
+
+    const result = await createRecibo.mutateAsync(reciboData);
+    setIsReciboDialogOpen(false);
+    setReciboServico(null);
+    // Auto-export PDF
+    if (result) {
+      gerarReciboPDF(result as Recibo);
+    }
+  };
+
+  const handleExportExistingRecibo = (servicoId: string) => {
+    const existingRecibo = recibos?.find(r => r.servico_extra_id === servicoId);
+    if (existingRecibo) {
+      gerarReciboPDF(existingRecibo);
+    }
+  };
+
+
     return status === 'finalizado' ? (
       <Badge variant="default"><Check className="h-3 w-3 mr-1" /> Finalizado</Badge>
     ) : (
