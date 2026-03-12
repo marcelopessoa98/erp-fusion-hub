@@ -132,7 +132,7 @@ export function useGestaoFinanceira() {
 
   const createLancamento = useMutation({
     mutationFn: async (lanc: Partial<LancamentoFinanceiro>) => {
-      const { data, error } = await supabase.from('lancamentos_financeiros').insert({ ...lanc, user_id: user?.id }).select().single();
+      const { data, error } = await supabase.from('lancamentos_financeiros').insert({ ...lanc, user_id: user?.id } as any).select().single();
       if (error) throw error;
       return data;
     },
