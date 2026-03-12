@@ -623,115 +623,94 @@ export default function ServicosExtras() {
       </Card>
 
       {/* Services List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
-            Serviços ({servicos?.length || 0})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Carregando...</div>
-          ) : !servicos?.length ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhum serviço encontrado para os filtros selecionados.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Filial</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Obra</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Pagamento</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Registrado por</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {servicos.map((servico) => (
-                    <TableRow key={servico.id}>
-                      <TableCell>
-                        {formatDateBR(servico.data_recebimento)}
-                      </TableCell>
-                      <TableCell>{servico.filial?.nome}</TableCell>
-                      <TableCell>{servico.cliente?.nome}</TableCell>
-                      <TableCell>{servico.obra?.nome}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={servico.descricao_servico}>
+      <div className="flex items-center gap-2 mb-4">
+        <Wrench className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold">Serviços ({servicos?.length || 0})</h2>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+      ) : !servicos?.length ? (
+        <div className="text-center py-8 text-muted-foreground">
+          Nenhum serviço encontrado para os filtros selecionados.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {servicos.map((servico) => {
+            const hasRecibo = recibos?.find(r => r.servico_extra_id === servico.id);
+            return (
+              <Card key={servico.id} className="flex flex-col justify-between">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <CardTitle className="text-sm font-semibold leading-tight truncate" title={servico.descricao_servico}>
                         {servico.descricao_servico}
-                      </TableCell>
-                      <TableCell>
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground">
+                        {servico.cliente?.nome} • {servico.obra?.nome}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-bold text-foreground">
                         {Number(servico.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </TableCell>
-                      <TableCell>{getStatusPagamentoBadge(servico.status_pagamento)}</TableCell>
-                      <TableCell>{getStatusServicoBadge(servico.status_servico)}</TableCell>
-                      <TableCell>{servico.usuario_nome}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {servico.status_pagamento === 'pago' && (
-                            recibos?.find(r => r.servico_extra_id === servico.id) ? (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditReciboDialog(servico.id)}
-                                  title="Editar Recibo"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                  <FileText className="h-3 w-3 -ml-1" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleExportExistingRecibo(servico.id)}
-                                  title="Exportar Recibo PDF"
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openReciboDialog(servico)}
-                                title="Gerar Recibo"
-                              >
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            )
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(servico)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {role === 'admin' && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => setDeleteServico(servico)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0 pb-3 space-y-3">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div>
+                      <span className="font-medium text-foreground">Filial:</span> {servico.filial?.nome}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Data:</span> {formatDateBR(servico.data_recebimento)}
+                    </div>
+                    <div className="col-span-2">
+                      <span className="font-medium text-foreground">Material:</span> {servico.material_recebido}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {getStatusPagamentoBadge(servico.status_pagamento)}
+                    {getStatusServicoBadge(servico.status_servico)}
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground">
+                    Registrado por: {servico.usuario_nome}
+                  </p>
+                </CardContent>
+                <div className="flex items-center justify-end gap-1.5 px-4 pb-3 pt-0 border-t mt-auto">
+                  {servico.status_pagamento === 'pago' && (
+                    hasRecibo ? (
+                      <>
+                        <Button variant="ghost" size="sm" onClick={() => openEditReciboDialog(servico.id)} title="Editar Recibo">
+                          <Edit className="h-3.5 w-3.5" />
+                          <FileText className="h-3 w-3 -ml-1" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleExportExistingRecibo(servico.id)} title="Exportar Recibo PDF">
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button variant="ghost" size="sm" onClick={() => openReciboDialog(servico)} title="Gerar Recibo">
+                        <FileText className="h-3.5 w-3.5" />
+                      </Button>
+                    )
+                  )}
+                  <Button variant="ghost" size="sm" onClick={() => openEditDialog(servico)} title="Editar">
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                  {role === 'admin' && (
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteServico(servico)} title="Excluir">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Edit Service Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
