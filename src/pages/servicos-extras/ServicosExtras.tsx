@@ -838,6 +838,84 @@ export default function ServicosExtras() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Recibo Dialog */}
+      <Dialog open={isReciboDialogOpen} onOpenChange={setIsReciboDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gerar Recibo</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="space-y-1">
+              <Label className="text-sm">Nome do Cliente *</Label>
+              <Input
+                value={reciboFormData.cliente_nome}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, cliente_nome: e.target.value })}
+                placeholder="Nome completo ou razão social"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">CNPJ do Cliente *</Label>
+              <Input
+                value={reciboFormData.cliente_cnpj}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, cliente_cnpj: e.target.value })}
+                placeholder="00.000.000/0000-00"
+                className="h-9"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-sm">Valor (R$) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={reciboFormData.valor}
+                  onChange={(e) => setReciboFormData({ ...reciboFormData, valor: e.target.value })}
+                  placeholder="0,00"
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm">Data do Recibo *</Label>
+                <Input
+                  type="date"
+                  value={reciboFormData.data_recibo}
+                  onChange={(e) => setReciboFormData({ ...reciboFormData, data_recibo: e.target.value })}
+                  className="h-9"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Valor por Extenso *</Label>
+              <Input
+                value={reciboFormData.valor_extenso}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, valor_extenso: e.target.value })}
+                placeholder="Ex: cento e oitenta reais"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Descrição do Serviço *</Label>
+              <Textarea
+                value={reciboFormData.descricao_servico}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, descricao_servico: e.target.value })}
+                placeholder="Referente a..."
+                rows={2}
+                className="min-h-[60px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" size="sm" onClick={() => setIsReciboDialogOpen(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleSaveRecibo} disabled={createRecibo.isPending}>
+              <FileText className="h-4 w-4 mr-2" />
+              {createRecibo.isPending ? 'Salvando...' : 'Salvar e Exportar PDF'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
