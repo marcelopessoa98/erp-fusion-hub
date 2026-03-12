@@ -82,7 +82,10 @@ export default function ServicosExtras() {
     data_recibo: formatDateToString(new Date()),
   });
 
-  const { recibos, createRecibo, deleteRecibo: deleteReciboMutation } = useRecibos();
+  const [isEditReciboDialogOpen, setIsEditReciboDialogOpen] = useState(false);
+  const [editingRecibo, setEditingRecibo] = useState<Recibo | null>(null);
+
+  const { recibos, createRecibo, updateRecibo, deleteRecibo: deleteReciboMutation } = useRecibos();
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -319,6 +322,49 @@ export default function ServicosExtras() {
     const existingRecibo = recibos?.find(r => r.servico_extra_id === servicoId);
     if (existingRecibo) {
       gerarReciboPDF(existingRecibo);
+    }
+  };
+
+  const openEditReciboDialog = (servicoId: string) => {
+    const existingRecibo = recibos?.find(r => r.servico_extra_id === servicoId);
+    if (existingRecibo) {
+      setEditingRecibo(existingRecibo);
+      setReciboFormData({
+        cliente_nome: existingRecibo.cliente_nome,
+        cliente_cnpj: existingRecibo.cliente_cnpj,
+        valor: String(existingRecibo.valor),
+        valor_extenso: existingRecibo.valor_extenso,
+        descricao_servico: existingRecibo.descricao_servico,
+        data_recibo: existingRecibo.data_recibo,
+      });
+      setIsEditReciboDialogOpen(true);
+    }
+  };
+
+  const handleUpdateRecibo = async () => {
+    if (!editingRecibo || !reciboFormData.cliente_nome || !reciboFormData.cliente_cnpj || !reciboFormData.valor) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha o nome do cliente, CNPJ e valor.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const result = await updateRecibo.mutateAsync({
+      id: editingRecibo.id,
+      cliente_nome: reciboFormData.cliente_nome,
+      cliente_cnpj: reciboFormData.cliente_cnpj,
+      valor: parseFloat(reciboFormData.valor),
+      valor_extenso: reciboFormData.valor_extenso,
+      descricao_servico: reciboFormData.descricao_servico,
+      data_recibo: reciboFormData.data_recibo,
+    });
+
+    setIsEditReciboDialogOpen(false);
+    setEditingRecibo(null);
+    if (result) {
+      gerarReciboPDF(result as Recibo);
     }
   };
 
@@ -630,14 +676,25 @@ export default function ServicosExtras() {
                         <div className="flex justify-end gap-2">
                           {servico.status_pagamento === 'pago' && (
                             recibos?.find(r => r.servico_extra_id === servico.id) ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleExportExistingRecibo(servico.id)}
-                                title="Exportar Recibo PDF"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditReciboDialog(servico.id)}
+                                  title="Editar Recibo"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  <FileText className="h-3 w-3 -ml-1" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleExportExistingRecibo(servico.id)}
+                                  title="Exportar Recibo PDF"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </>
                             ) : (
                               <Button
                                 variant="outline"
@@ -912,6 +969,84 @@ export default function ServicosExtras() {
             <Button size="sm" onClick={handleSaveRecibo} disabled={createRecibo.isPending}>
               <FileText className="h-4 w-4 mr-2" />
               {createRecibo.isPending ? 'Salvando...' : 'Salvar e Exportar PDF'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Recibo Dialog */}
+      <Dialog open={isEditReciboDialogOpen} onOpenChange={setIsEditReciboDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Recibo</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="space-y-1">
+              <Label className="text-sm">Nome do Cliente *</Label>
+              <Input
+                value={reciboFormData.cliente_nome}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, cliente_nome: e.target.value })}
+                placeholder="Nome completo ou razão social"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">CNPJ do Cliente *</Label>
+              <Input
+                value={reciboFormData.cliente_cnpj}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, cliente_cnpj: e.target.value })}
+                placeholder="00.000.000/0000-00"
+                className="h-9"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-sm">Valor (R$) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={reciboFormData.valor}
+                  onChange={(e) => setReciboFormData({ ...reciboFormData, valor: e.target.value })}
+                  placeholder="0,00"
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm">Data do Recibo *</Label>
+                <Input
+                  type="date"
+                  value={reciboFormData.data_recibo}
+                  onChange={(e) => setReciboFormData({ ...reciboFormData, data_recibo: e.target.value })}
+                  className="h-9"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Valor por Extenso *</Label>
+              <Input
+                value={reciboFormData.valor_extenso}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, valor_extenso: e.target.value })}
+                placeholder="Ex: cento e oitenta reais"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Descrição do Serviço *</Label>
+              <Textarea
+                value={reciboFormData.descricao_servico}
+                onChange={(e) => setReciboFormData({ ...reciboFormData, descricao_servico: e.target.value })}
+                placeholder="Referente a..."
+                rows={2}
+                className="min-h-[60px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" size="sm" onClick={() => setIsEditReciboDialogOpen(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleUpdateRecibo} disabled={updateRecibo.isPending}>
+              <FileText className="h-4 w-4 mr-2" />
+              {updateRecibo.isPending ? 'Salvando...' : 'Salvar e Exportar PDF'}
             </Button>
           </DialogFooter>
         </DialogContent>
