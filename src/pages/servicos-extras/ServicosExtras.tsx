@@ -322,7 +322,7 @@ export default function ServicosExtras() {
     }
   };
 
-
+  const getStatusServicoBadge = (status: string) => {
     return status === 'finalizado' ? (
       <Badge variant="default"><Check className="h-3 w-3 mr-1" /> Finalizado</Badge>
     ) : (
