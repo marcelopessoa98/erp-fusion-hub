@@ -184,7 +184,7 @@ export function useGestaoFinanceira() {
 
   const createCobranca = useMutation({
     mutationFn: async (cob: Partial<CobrancaCliente>) => {
-      const { data, error } = await supabase.from('cobrancas_clientes').insert({ ...cob, user_id: user?.id }).select().single();
+      const { data, error } = await supabase.from('cobrancas_clientes').insert({ ...cob, user_id: user?.id } as any).select().single();
       if (error) throw error;
       return data;
     },
