@@ -26,6 +26,7 @@ export interface FuncionarioDocumento {
     data_emissao: string | null;
     data_validade: string | null;
     status: 'vigente' | 'vencido' | 'a_vencer' | 'pendente';
+    arquivo_url: string | null;
   }>;
 }
 
@@ -99,6 +100,7 @@ export function useDocumentacaoFuncionarios() {
               data_emissao: doc?.data_emissao || null,
               data_validade: doc?.data_validade || null,
               status: calcularStatus(doc, temValidade),
+              arquivo_url: doc?.arquivo_url || null,
             };
           });
 
@@ -248,6 +250,102 @@ export function useDocumentacaoFuncionarios() {
     total: funcionarios.length,
   };
 
+  const uploadArquivo = async (
+    funcionarioId: string,
+    filialId: string,
+    tipoDocumento: TipoDocumento,
+    file: File,
+    docId: string | null
+  ) => {
+    const tipoInfo = TIPOS_DOCUMENTO.find(t => t.tipo === tipoDocumento)!;
+    const ext = file.name.split('.').pop() || 'pdf';
+    const filePath = `${funcionarioId}/${tipoDocumento}_${Date.now()}.${ext}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('documentos-funcionarios')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      if (docId) {
+        // Remove old file if exists
+        const oldDoc = funcionarios.flatMap(f => 
+          f.id === funcionarioId ? [f.documentos[tipoDocumento]] : []
+        )[0];
+        if (oldDoc?.arquivo_url) {
+          await supabase.storage.from('documentos-funcionarios').remove([oldDoc.arquivo_url]);
+        }
+
+        const { error } = await supabase
+          .from('documentos_funcionarios')
+          .update({ arquivo_url: filePath })
+          .eq('id', docId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('documentos_funcionarios')
+          .insert({
+            funcionario_id: funcionarioId,
+            filial_id: filialId,
+            tipo_documento: tipoDocumento,
+            nome_documento: tipoInfo.nome,
+            arquivo_url: filePath,
+            status: 'pendente',
+            user_id: user?.id,
+          });
+        if (error) throw error;
+      }
+
+      toast.success(`Arquivo de ${tipoInfo.nome} enviado com sucesso`);
+      await fetchData();
+    } catch (error: any) {
+      console.error('Erro ao enviar arquivo:', error);
+      toast.error('Erro ao enviar arquivo: ' + error.message);
+    }
+  };
+
+  const excluirArquivo = async (docId: string, arquivoUrl: string) => {
+    try {
+      const { error: removeError } = await supabase.storage
+        .from('documentos-funcionarios')
+        .remove([arquivoUrl]);
+      if (removeError) throw removeError;
+
+      const { error } = await supabase
+        .from('documentos_funcionarios')
+        .update({ arquivo_url: null })
+        .eq('id', docId);
+      if (error) throw error;
+
+      toast.success('Arquivo removido com sucesso');
+      await fetchData();
+    } catch (error: any) {
+      console.error('Erro ao remover arquivo:', error);
+      toast.error('Erro ao remover arquivo: ' + error.message);
+    }
+  };
+
+  const baixarArquivo = async (arquivoUrl: string, nomeDocumento: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documentos-funcionarios')
+        .download(arquivoUrl);
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${nomeDocumento}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Erro ao baixar arquivo:', error);
+      toast.error('Erro ao baixar arquivo: ' + error.message);
+    }
+  };
+
   return {
     funcionarios: funcionariosFiltrados,
     loading,
@@ -261,6 +359,9 @@ export function useDocumentacaoFuncionarios() {
     contagens,
     salvarDocumento,
     marcarDocumentoSemValidade,
+    uploadArquivo,
+    excluirArquivo,
+    baixarArquivo,
     refetch: fetchData,
   };
 }
