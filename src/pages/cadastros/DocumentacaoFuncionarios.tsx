@@ -1,11 +1,12 @@
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentacaoDashboard } from '@/components/documentacao/DocumentacaoDashboard';
-import { FuncionarioDocRow } from '@/components/documentacao/FuncionarioDocRow';
-import { useDocumentacaoFuncionarios, TIPOS_DOCUMENTO } from '@/hooks/useDocumentacaoFuncionarios';
+import { FuncionarioDocCard } from '@/components/documentacao/FuncionarioDocCard';
+import { useDocumentacaoFuncionarios, TIPOS_DOCUMENTO, type FuncionarioDocumento } from '@/hooks/useDocumentacaoFuncionarios';
+import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const DocumentacaoFuncionarios = () => {
   const {
@@ -25,6 +26,39 @@ const DocumentacaoFuncionarios = () => {
     excluirArquivo,
     baixarArquivo,
   } = useDocumentacaoFuncionarios();
+
+  const handleBaixarTodos = async (funcionario: FuncionarioDocumento) => {
+    const docsComArquivo = TIPOS_DOCUMENTO.filter(t => funcionario.documentos[t.tipo].arquivo_url);
+    if (docsComArquivo.length === 0) {
+      toast.error('Nenhum arquivo disponível para download');
+      return;
+    }
+
+    toast.info(`Baixando ${docsComArquivo.length} arquivo(s)...`);
+
+    for (const tipoInfo of docsComArquivo) {
+      const doc = funcionario.documentos[tipoInfo.tipo];
+      if (doc.arquivo_url) {
+        try {
+          const { data, error } = await supabase.storage
+            .from('documentos-funcionarios')
+            .download(doc.arquivo_url);
+          if (error) throw error;
+
+          const url = URL.createObjectURL(data);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${funcionario.nome}_${tipoInfo.nome}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch {
+          toast.error(`Erro ao baixar ${tipoInfo.nome}`);
+        }
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -64,43 +98,26 @@ const DocumentacaoFuncionarios = () => {
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
+        </div>
+      ) : funcionarios.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          Nenhum funcionário encontrado
         </div>
       ) : (
-        <div className="border rounded-lg overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[180px]">Funcionário</TableHead>
-                {TIPOS_DOCUMENTO.map((t) => (
-                  <TableHead key={t.tipo} className="text-center text-xs min-w-[130px]">
-                    {t.nome}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {funcionarios.length === 0 ? (
-                <TableRow>
-                  <td colSpan={TIPOS_DOCUMENTO.length + 1} className="text-center py-8 text-muted-foreground">
-                    Nenhum funcionário encontrado
-                  </td>
-                </TableRow>
-              ) : (
-                funcionarios.map((f) => (
-                  <FuncionarioDocRow
-                    key={f.id}
-                    funcionario={f}
-                    onSalvarComData={salvarDocumento}
-                    onMarcarSemValidade={marcarDocumentoSemValidade}
-                    onUploadArquivo={uploadArquivo}
-                    onExcluirArquivo={excluirArquivo}
-                    onBaixarArquivo={baixarArquivo}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <div className="space-y-3">
+          {funcionarios.map((f) => (
+            <FuncionarioDocCard
+              key={f.id}
+              funcionario={f}
+              onSalvarComData={salvarDocumento}
+              onMarcarSemValidade={marcarDocumentoSemValidade}
+              onUploadArquivo={uploadArquivo}
+              onExcluirArquivo={excluirArquivo}
+              onBaixarArquivo={baixarArquivo}
+              onBaixarTodos={handleBaixarTodos}
+            />
+          ))}
         </div>
       )}
     </div>
