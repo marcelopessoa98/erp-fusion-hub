@@ -605,6 +605,7 @@ export type Database = {
       }
       documentos_funcionarios: {
         Row: {
+          arquivo_url: string | null
           created_at: string
           data_emissao: string | null
           data_validade: string | null
@@ -619,6 +620,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          arquivo_url?: string | null
           created_at?: string
           data_emissao?: string | null
           data_validade?: string | null
@@ -633,6 +635,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          arquivo_url?: string | null
           created_at?: string
           data_emissao?: string | null
           data_validade?: string | null
