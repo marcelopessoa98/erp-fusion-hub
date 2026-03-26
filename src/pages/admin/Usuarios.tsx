@@ -330,7 +330,8 @@ const Usuarios = () => {
 
   const handleDeleteUser = () => {
     if (!deleteUserTarget) return;
-    deleteUserMutation.mutate(deleteUserTarget.user_id);
+    const userId = deleteUserTarget.user_id;
+    deleteUserMutation.mutate(userId);
   };
 
   const handleFilialToggle = (filialId: string) => {
@@ -685,7 +686,7 @@ const Usuarios = () => {
       </Dialog>
 
       {/* Delete User Confirmation */}
-      <AlertDialog open={!!deleteUserTarget} onOpenChange={() => setDeleteUserTarget(null)}>
+      <AlertDialog open={!!deleteUserTarget} onOpenChange={(open) => { if (!open && !deleteUserMutation.isPending) setDeleteUserTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
@@ -697,7 +698,10 @@ const Usuarios = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteUser}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteUser();
+              }}
               className="bg-destructive text-destructive-foreground"
             >
               {deleteUserMutation.isPending ? 'Excluindo...' : 'Excluir'}
