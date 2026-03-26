@@ -21,6 +21,9 @@ const DocumentacaoFuncionarios = () => {
     contagens,
     salvarDocumento,
     marcarDocumentoSemValidade,
+    uploadArquivo,
+    excluirArquivo,
+    baixarArquivo,
   } = useDocumentacaoFuncionarios();
 
   return (
@@ -90,6 +93,9 @@ const DocumentacaoFuncionarios = () => {
                     funcionario={f}
                     onSalvarComData={salvarDocumento}
                     onMarcarSemValidade={marcarDocumentoSemValidade}
+                    onUploadArquivo={uploadArquivo}
+                    onExcluirArquivo={excluirArquivo}
+                    onBaixarArquivo={baixarArquivo}
                   />
                 ))
               )}
