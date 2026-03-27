@@ -292,6 +292,7 @@ const Usuarios = () => {
       toast.success('Usuário excluído com sucesso!');
     },
     onError: (error: Error) => {
+      console.error('Delete user error:', error);
       toast.error(`Erro ao excluir: ${error.message}`);
     },
   });
