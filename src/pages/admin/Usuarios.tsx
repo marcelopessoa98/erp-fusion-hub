@@ -278,7 +278,11 @@ const Usuarios = () => {
       const { data, error } = await supabase.functions.invoke('admin-manage-user', {
         body: { action: 'delete', userId },
       });
-      if (error) throw error;
+      if (error) {
+        // Try to parse error body for message
+        const msg = typeof error === 'object' && 'message' in error ? error.message : String(error);
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
       return data;
     },
@@ -288,6 +292,7 @@ const Usuarios = () => {
       toast.success('Usuário excluído com sucesso!');
     },
     onError: (error: Error) => {
+      console.error('Delete user error:', error);
       toast.error(`Erro ao excluir: ${error.message}`);
     },
   });
@@ -329,9 +334,9 @@ const Usuarios = () => {
   };
 
   const handleDeleteUser = () => {
-    if (!deleteUserTarget) return;
-    const userId = deleteUserTarget.user_id;
-    deleteUserMutation.mutate(userId);
+    const target = deleteUserTarget;
+    if (!target) return;
+    deleteUserMutation.mutate(target.user_id);
   };
 
   const handleFilialToggle = (filialId: string) => {
