@@ -333,9 +333,9 @@ const Usuarios = () => {
   };
 
   const handleDeleteUser = () => {
-    if (!deleteUserTarget) return;
-    const userId = deleteUserTarget.user_id;
-    deleteUserMutation.mutate(userId);
+    const target = deleteUserTarget;
+    if (!target) return;
+    deleteUserMutation.mutate(target.user_id);
   };
 
   const handleFilialToggle = (filialId: string) => {
