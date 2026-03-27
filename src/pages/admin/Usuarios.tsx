@@ -278,7 +278,11 @@ const Usuarios = () => {
       const { data, error } = await supabase.functions.invoke('admin-manage-user', {
         body: { action: 'delete', userId },
       });
-      if (error) throw error;
+      if (error) {
+        // Try to parse error body for message
+        const msg = typeof error === 'object' && 'message' in error ? error.message : String(error);
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
       return data;
     },
