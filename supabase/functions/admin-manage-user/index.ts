@@ -5,6 +5,30 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const clearUserReferences = async (
+  adminClient: ReturnType<typeof createClient>,
+  userId: string,
+) => {
+  const cleanupOperations = [
+    adminClient.from("agendamentos").update({ user_id: null }).eq("user_id", userId),
+    adminClient.from("avaliacoes_funcionarios").update({ user_id: null }).eq("user_id", userId),
+    adminClient.from("propostas").update({ user_id: null }).eq("user_id", userId),
+    adminClient
+      .from("propostas")
+      .update({ aprovado_por: null, aprovado_por_nome: null })
+      .eq("aprovado_por", userId),
+    adminClient.from("recibos").update({ user_id: null }).eq("user_id", userId),
+    adminClient.from("servicos_extras").update({ user_id: null }).eq("user_id", userId),
+  ];
+
+  const results = await Promise.all(cleanupOperations);
+  const failedOperation = results.find((result) => result.error);
+
+  if (failedOperation?.error) {
+    throw failedOperation.error;
+  }
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -83,6 +107,8 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      await clearUserReferences(adminClient, userId);
 
       // Delete from auth (cascades to profiles, user_roles, user_filiais)
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
