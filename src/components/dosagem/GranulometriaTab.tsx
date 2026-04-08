@@ -21,29 +21,59 @@ import {
 import {
   ResponsiveContainer,
   Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ComposedChart,
 } from 'recharts';
 
 type TipoAgregado = 'miudo' | 'graudo';
 
-// Colors matching Excel spreadsheet
-const COLORS = {
-  zonaUtilInf: '#2563eb',    // blue
-  zonaOtimaInf: '#16a34a',   // green
-  zonaOtimaSup: '#16a34a',   // green
-  zonaUtilSup: '#2563eb',    // blue
-  material: '#dc2626',       // red
-  brita0: '#f59e0b',         // amber
-  brita1: '#8b5cf6',         // violet
-  brita2: '#06b6d4',         // cyan
-  brita3: '#ec4899',         // pink
-  brita4: '#84cc16',         // lime
+const ZONE_COLORS = {
+  zonaUtil: '#2563eb',
+  zonaOtima: '#16a34a',
+  material: '#dc2626',
+  brita0: '#f59e0b',
+  brita1: '#8b5cf6',
+  brita2: '#06b6d4',
 };
+
+// Custom legend component to avoid overlapping
+function ChartLegend({ tipoAgregado }: { tipoAgregado: TipoAgregado }) {
+  const items = tipoAgregado === 'miudo'
+    ? [
+        { color: ZONE_COLORS.zonaUtil, label: 'Zona Utilizável', dashed: true },
+        { color: ZONE_COLORS.zonaOtima, label: 'Zona Ótima', dashed: true },
+        { color: ZONE_COLORS.material, label: 'Material Ensaiado', dashed: false },
+      ]
+    : [
+        { color: ZONE_COLORS.brita0, label: 'Brita 0 (4,75/12,5)', dashed: true },
+        { color: ZONE_COLORS.brita1, label: 'Brita 1 (9,5/25)', dashed: true },
+        { color: ZONE_COLORS.brita2, label: 'Brita 2 (19/31,5)', dashed: true },
+        { color: ZONE_COLORS.material, label: 'Material Ensaiado', dashed: false },
+      ];
+
+  return (
+    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-1 px-2">
+      {items.map((item) => (
+        <div key={item.label} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <svg width="20" height="10">
+            <line
+              x1="0" y1="5" x2="20" y2="5"
+              stroke={item.color}
+              strokeWidth={item.dashed ? 1.5 : 2.5}
+              strokeDasharray={item.dashed ? '4 3' : 'none'}
+            />
+            {!item.dashed && <circle cx="10" cy="5" r="2.5" fill={item.color} />}
+          </svg>
+          <span>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function GranulometriaTab() {
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>('miudo');
@@ -53,7 +83,6 @@ export function GranulometriaTab() {
   const [massasA, setMassasA] = useState<number[]>(() => peneiras.map(() => 0));
   const [massasB, setMassasB] = useState<number[]>(() => peneiras.map(() => 0));
 
-  // Reset when switching type
   const handleTipoChange = (tipo: TipoAgregado) => {
     const p = tipo === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
     setTipoAgregado(tipo);
@@ -72,10 +101,8 @@ export function GranulometriaTab() {
   const totalA = massasA.reduce((s, v) => s + v, 0);
   const totalB = massasB.reduce((s, v) => s + v, 0);
 
-  // Detect which brita zone the material falls into (for graúdo)
   const detectedZona = useMemo(() => {
     if (tipoAgregado !== 'graudo') return null;
-    // Find zone where material best fits
     for (let zi = 0; zi < ZONAS_GRAUDO.length; zi++) {
       const zona = ZONAS_GRAUDO[zi];
       let withinZone = true;
@@ -93,38 +120,43 @@ export function GranulometriaTab() {
     return null;
   }, [tipoAgregado, dados, totalA]);
 
-  // Chart data - X axis goes from large (left) to small (right)
+  // Build chart data, filtering irrelevant points for graúdo
   const chartData = useMemo(() => {
-    return dados.filter(d => d.abertura >= 0.15).map(d => {
-      const point: any = {
-        abertura: d.abertura,
-        label: d.label,
-        material: d.retidaAcumulada,
-      };
+    const raw = dados.filter(d => d.abertura >= 0.15);
 
-      if (tipoAgregado === 'miudo') {
-        const zona = ZONAS_MIUDO[d.abertura];
-        if (zona) {
-          point.zonaUtilInf = zona[0];
-          point.zonaOtimaInf = zona[1];
-          point.zonaOtimaSup = zona[2];
-          point.zonaUtilSup = zona[3];
-        }
-      } else {
-        // Show ALL brita zones simultaneously
-        for (let zi = 0; zi < ZONAS_GRAUDO.length; zi++) {
-          const zona = ZONAS_GRAUDO[zi];
-          const faixa = zona.faixas[d.abertura];
-          if (faixa) {
-            point[`brita${zi}Inf`] = faixa[0];
-            point[`brita${zi}Sup`] = faixa[1];
+    return raw
+      .map(d => {
+        const point: any = {
+          abertura: d.abertura,
+          label: d.label,
+          material: d.retidaAcumulada,
+        };
+
+        if (tipoAgregado === 'miudo') {
+          const zona = ZONAS_MIUDO[d.abertura];
+          if (zona) {
+            point.zonaUtilInf = zona[0];
+            point.zonaOtimaInf = zona[1];
+            point.zonaOtimaSup = zona[2];
+            point.zonaUtilSup = zona[3];
           }
+        } else {
+          let allSame = true;
+          for (let zi = 0; zi < ZONAS_GRAUDO.length; zi++) {
+            const zona = ZONAS_GRAUDO[zi];
+            const faixa = zona.faixas[d.abertura];
+            if (faixa) {
+              point[`brita${zi}Inf`] = faixa[0];
+              point[`brita${zi}Sup`] = faixa[1];
+              if (faixa[0] !== 100 || faixa[1] !== 100) allSame = false;
+              if (faixa[0] !== 0 || faixa[1] !== 0) allSame = false;
+            }
+          }
+          // Keep point even if zones are flat - we need material line continuity
         }
-      }
 
-      return point;
-    });
-    // No reverse - data naturally goes from large to small abertura
+        return point;
+      });
   }, [dados, tipoAgregado]);
 
   const updateMassa = (setArr: React.Dispatch<React.SetStateAction<number[]>>, idx: number, val: string) => {
@@ -134,6 +166,23 @@ export function GranulometriaTab() {
       next[idx] = n;
       return next;
     });
+  };
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="bg-background border rounded-md shadow-md p-2 text-xs max-w-[200px]">
+        <p className="font-semibold mb-1">Peneira: {label} mm</p>
+        {payload
+          .filter((p: any) => p.value != null)
+          .map((p: any, i: number) => (
+            <p key={i} style={{ color: p.color }} className="leading-tight">
+              {p.name}: {Number(p.value).toFixed(1)}%
+            </p>
+          ))}
+      </div>
+    );
   };
 
   return (
@@ -237,7 +286,7 @@ export function GranulometriaTab() {
             <CardTitle className="text-sm">Curva Granulométrica</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <ResponsiveContainer width="100%" height={460}>
+            <ResponsiveContainer width="100%" height={430}>
               <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis
@@ -255,41 +304,54 @@ export function GranulometriaTab() {
                   label={{ value: '% Retida Acumulada', angle: -90, position: 'insideLeft', offset: 0, fontSize: 11 }}
                   fontSize={10}
                 />
-                <Tooltip
-                  formatter={(v: number, name: string) => [v.toFixed(1) + '%', name]}
-                  labelFormatter={(v) => `Peneira: ${v} mm`}
-                />
-                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Tooltip content={<CustomTooltip />} />
 
                 {tipoAgregado === 'miudo' ? (
                   <>
-                    <Line type="monotone" dataKey="zonaUtilInf" stroke={COLORS.zonaUtilInf} strokeDasharray="8 4" dot={false} name="Zona Utilizável Inf." strokeWidth={1.5} />
-                    <Line type="monotone" dataKey="zonaOtimaInf" stroke={COLORS.zonaOtimaInf} strokeDasharray="4 3" dot={false} name="Zona Ótima Inf." strokeWidth={1.5} />
-                    <Line type="monotone" dataKey="zonaOtimaSup" stroke={COLORS.zonaOtimaSup} strokeDasharray="4 3" dot={false} name="Zona Ótima Sup." strokeWidth={1.5} />
-                    <Line type="monotone" dataKey="zonaUtilSup" stroke={COLORS.zonaUtilInf} strokeDasharray="8 4" dot={false} name="Zona Utilizável Sup." strokeWidth={1.5} />
+                    {/* Area fill between zona útil limits */}
+                    <Area type="monotone" dataKey="zonaUtilSup" stroke="none" fill={ZONE_COLORS.zonaUtil} fillOpacity={0.08} legendType="none" />
+                    <Area type="monotone" dataKey="zonaUtilInf" stroke="none" fill="hsl(var(--background))" fillOpacity={1} legendType="none" />
+                    {/* Area fill between zona ótima limits */}
+                    <Area type="monotone" dataKey="zonaOtimaSup" stroke="none" fill={ZONE_COLORS.zonaOtima} fillOpacity={0.1} legendType="none" />
+                    <Area type="monotone" dataKey="zonaOtimaInf" stroke="none" fill="hsl(var(--background))" fillOpacity={1} legendType="none" />
+
+                    <Line type="monotone" dataKey="zonaUtilInf" stroke={ZONE_COLORS.zonaUtil} strokeDasharray="8 4" dot={false} name="Zona Utilizável" strokeWidth={1.5} legendType="none" />
+                    <Line type="monotone" dataKey="zonaUtilSup" stroke={ZONE_COLORS.zonaUtil} strokeDasharray="8 4" dot={false} name="Zona Utilizável Sup." strokeWidth={1.5} legendType="none" />
+                    <Line type="monotone" dataKey="zonaOtimaInf" stroke={ZONE_COLORS.zonaOtima} strokeDasharray="4 3" dot={false} name="Zona Ótima" strokeWidth={1.5} legendType="none" />
+                    <Line type="monotone" dataKey="zonaOtimaSup" stroke={ZONE_COLORS.zonaOtima} strokeDasharray="4 3" dot={false} name="Zona Ótima Sup." strokeWidth={1.5} legendType="none" />
                   </>
                 ) : (
                   <>
                     {ZONAS_GRAUDO.map((zona, zi) => {
-                      const colors = [COLORS.brita0, COLORS.brita1, COLORS.brita2, COLORS.brita3, COLORS.brita4];
-                      const color = colors[zi] || COLORS.brita0;
+                      const colors = [ZONE_COLORS.brita0, ZONE_COLORS.brita1, ZONE_COLORS.brita2];
+                      const color = colors[zi] || ZONE_COLORS.brita0;
                       return (
-                        <Line key={`inf${zi}`} type="monotone" dataKey={`brita${zi}Inf`} stroke={color} strokeDasharray="6 3" dot={false} name={`${zona.nome} Inf.`} strokeWidth={1} connectNulls />
+                        <Area key={`area${zi}`} type="monotone" dataKey={`brita${zi}Sup`} stroke="none" fill={color} fillOpacity={0.06} legendType="none" connectNulls />
                       );
                     })}
                     {ZONAS_GRAUDO.map((zona, zi) => {
-                      const colors = [COLORS.brita0, COLORS.brita1, COLORS.brita2, COLORS.brita3, COLORS.brita4];
-                      const color = colors[zi] || COLORS.brita0;
+                      const colors = [ZONE_COLORS.brita0, ZONE_COLORS.brita1, ZONE_COLORS.brita2];
+                      const color = colors[zi] || ZONE_COLORS.brita0;
                       return (
-                        <Line key={`sup${zi}`} type="monotone" dataKey={`brita${zi}Sup`} stroke={color} strokeDasharray="6 3" dot={false} name={`${zona.nome} Sup.`} strokeWidth={1} connectNulls />
+                        <Area key={`areaInf${zi}`} type="monotone" dataKey={`brita${zi}Inf`} stroke="none" fill="hsl(var(--background))" fillOpacity={1} legendType="none" connectNulls />
                       );
+                    })}
+                    {ZONAS_GRAUDO.map((zona, zi) => {
+                      const colors = [ZONE_COLORS.brita0, ZONE_COLORS.brita1, ZONE_COLORS.brita2];
+                      const color = colors[zi] || ZONE_COLORS.brita0;
+                      return [
+                        <Line key={`inf${zi}`} type="monotone" dataKey={`brita${zi}Inf`} stroke={color} strokeDasharray="6 3" dot={false} name={`${zona.nome} Inf.`} strokeWidth={1.2} connectNulls legendType="none" />,
+                        <Line key={`sup${zi}`} type="monotone" dataKey={`brita${zi}Sup`} stroke={color} strokeDasharray="6 3" dot={false} name={`${zona.nome} Sup.`} strokeWidth={1.2} connectNulls legendType="none" />,
+                      ];
                     })}
                   </>
                 )}
 
-                <Line type="monotone" dataKey="material" stroke={COLORS.material} dot={{ r: 3 }} name="Material Ensaiado" strokeWidth={2.5} connectNulls />
+                <Line type="monotone" dataKey="material" stroke={ZONE_COLORS.material} dot={{ r: 3 }} name="Material Ensaiado" strokeWidth={2.5} connectNulls legendType="none" />
               </ComposedChart>
             </ResponsiveContainer>
+            {/* Custom legend below chart - no overlap */}
+            <ChartLegend tipoAgregado={tipoAgregado} />
           </CardContent>
         </Card>
       </div>
