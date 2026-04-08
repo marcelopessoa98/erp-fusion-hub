@@ -178,19 +178,19 @@ export default function Ensaios() {
         <Card>
           <CardContent className="py-3 px-4">
             <div className="text-xs text-muted-foreground">Pendentes</div>
-            <div className="text-2xl font-bold text-yellow-500">{stats.pendentes}</div>
+            <div className="text-2xl font-bold text-amber-500">{stats.pendentes}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-3 px-4">
             <div className="text-xs text-muted-foreground">Em Andamento</div>
-            <div className="text-2xl font-bold text-blue-500">{stats.andamento}</div>
+            <div className="text-2xl font-bold text-primary">{stats.andamento}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-3 px-4">
             <div className="text-xs text-muted-foreground">Concluídos</div>
-            <div className="text-2xl font-bold text-green-500">{stats.concluidos}</div>
+            <div className="text-2xl font-bold text-emerald-500">{stats.concluidos}</div>
           </CardContent>
         </Card>
       </div>
@@ -314,23 +314,23 @@ export default function Ensaios() {
             <div>
               <Label>Cliente *</Label>
               <ComboboxSearch
-                items={clientes.map(c => ({ value: c.id, label: c.nome }))}
+                options={clientes.map(c => ({ value: c.id, label: c.nome }))}
                 value={formCliente}
                 onValueChange={setFormCliente}
                 placeholder="Selecione o cliente"
                 searchPlaceholder="Buscar cliente..."
-                emptyMessage="Nenhum cliente encontrado"
+                emptyText="Nenhum cliente encontrado"
               />
             </div>
             <div>
               <Label>Obra *</Label>
               <ComboboxSearch
-                items={obras.map(o => ({ value: o.id, label: `${o.nome}${o.referencia ? ` (${o.referencia})` : ''}` }))}
+                options={obras.map(o => ({ value: o.id, label: `${o.nome}${o.referencia ? ` (${o.referencia})` : ''}` }))}
                 value={formObra}
                 onValueChange={setFormObra}
                 placeholder="Selecione a obra"
                 searchPlaceholder="Buscar obra..."
-                emptyMessage="Nenhuma obra encontrada"
+                emptyText="Nenhuma obra encontrada"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -351,12 +351,12 @@ export default function Ensaios() {
             <div>
               <Label>Responsável</Label>
               <ComboboxSearch
-                items={funcionarios.map(f => ({ value: f.id, label: f.nome }))}
+                options={funcionarios.map(f => ({ value: f.id, label: f.nome }))}
                 value={formResponsavel}
                 onValueChange={setFormResponsavel}
                 placeholder="Selecione o responsável"
                 searchPlaceholder="Buscar funcionário..."
-                emptyMessage="Nenhum funcionário encontrado"
+                emptyText="Nenhum funcionário encontrado"
               />
             </div>
           </div>

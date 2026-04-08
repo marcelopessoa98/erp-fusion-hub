@@ -32,6 +32,8 @@ import ContratosConfig from "./pages/financeiro/ContratosConfig";
 import Propostas from "./pages/financeiro/Propostas";
 import SolicitacoesCompras from "./pages/financeiro/SolicitacoesCompras";
 import Ensaios from "./pages/ensaios/Ensaios";
+import EnsaioTracos from "./pages/ensaios/EnsaioTracos";
+import EnsaioDetalhe from "./pages/ensaios/EnsaioDetalhe";
 import LaudoCautelarPage from "./pages/ensaios/LaudoCautelar";
 import EquipeTecnica from "./pages/cadastros/EquipeTecnica";
 import GestaoFinanceira from "./pages/financeiro/GestaoFinanceira";
@@ -298,6 +300,26 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <Ensaios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ensaios/tracos/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <EnsaioTracos />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ensaios/detalhe/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <EnsaioDetalhe />
             </AppLayout>
           </ProtectedRoute>
         }
