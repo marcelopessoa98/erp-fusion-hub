@@ -299,8 +299,6 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
             </Button>
           </div>
         )}
-          )}
-        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
