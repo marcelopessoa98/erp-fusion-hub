@@ -191,6 +191,55 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
     });
   };
 
+  // Persist to ensaio.campos_especificos.granulometria
+  const persist = async () => {
+    if (!ensaioId) return;
+    setSaving(true);
+    try {
+      const { data: current, error: fetchErr } = await supabase
+        .from('ensaios')
+        .select('campos_especificos')
+        .eq('id', ensaioId)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const campos = (current?.campos_especificos as any) || {};
+      const novosCampos = {
+        ...campos,
+        granulometria: {
+          tipoAgregado,
+          massasA,
+          massasB,
+          moduloFinura,
+          diametroMaximo,
+          updated_at: new Date().toISOString(),
+        },
+      };
+      const { error } = await supabase
+        .from('ensaios')
+        .update({ campos_especificos: novosCampos })
+        .eq('id', ensaioId);
+      if (error) throw error;
+      setSavedAt(new Date());
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar granulometria', description: e.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Auto-save (debounced)
+  useEffect(() => {
+    if (!ensaioId) return;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const t = setTimeout(() => { persist(); }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoAgregado, massasA, massasB, ensaioId]);
+
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
