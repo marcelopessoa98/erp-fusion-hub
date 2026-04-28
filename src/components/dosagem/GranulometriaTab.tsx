@@ -1,7 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Save, Check } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -75,13 +79,32 @@ function ChartLegend({ tipoAgregado }: { tipoAgregado: TipoAgregado }) {
   );
 }
 
-export function GranulometriaTab() {
-  const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>('miudo');
+interface GranulometriaTabProps {
+  ensaioId?: string;
+  initialData?: {
+    tipoAgregado?: TipoAgregado;
+    massasA?: number[];
+    massasB?: number[];
+  };
+}
+
+export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProps = {}) {
+  const { toast } = useToast();
+  const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
 
   const peneiras = tipoAgregado === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
 
-  const [massasA, setMassasA] = useState<number[]>(() => peneiras.map(() => 0));
-  const [massasB, setMassasB] = useState<number[]>(() => peneiras.map(() => 0));
+  const [massasA, setMassasA] = useState<number[]>(() => {
+    if (initialData?.massasA && initialData.massasA.length === peneiras.length) return initialData.massasA;
+    return peneiras.map(() => 0);
+  });
+  const [massasB, setMassasB] = useState<number[]>(() => {
+    if (initialData?.massasB && initialData.massasB.length === peneiras.length) return initialData.massasB;
+    return peneiras.map(() => 0);
+  });
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const isFirstRender = useRef(true);
 
   const handleTipoChange = (tipo: TipoAgregado) => {
     const p = tipo === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
@@ -168,6 +191,55 @@ export function GranulometriaTab() {
     });
   };
 
+  // Persist to ensaio.campos_especificos.granulometria
+  const persist = async () => {
+    if (!ensaioId) return;
+    setSaving(true);
+    try {
+      const { data: current, error: fetchErr } = await supabase
+        .from('ensaios')
+        .select('campos_especificos')
+        .eq('id', ensaioId)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const campos = (current?.campos_especificos as any) || {};
+      const novosCampos = {
+        ...campos,
+        granulometria: {
+          tipoAgregado,
+          massasA,
+          massasB,
+          moduloFinura,
+          diametroMaximo,
+          updated_at: new Date().toISOString(),
+        },
+      };
+      const { error } = await supabase
+        .from('ensaios')
+        .update({ campos_especificos: novosCampos })
+        .eq('id', ensaioId);
+      if (error) throw error;
+      setSavedAt(new Date());
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar granulometria', description: e.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Auto-save (debounced)
+  useEffect(() => {
+    if (!ensaioId) return;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const t = setTimeout(() => { persist(); }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoAgregado, massasA, massasB, ensaioId]);
+
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
@@ -212,6 +284,21 @@ export function GranulometriaTab() {
             </Badge>
           )}
         </div>
+        {ensaioId && (
+          <div className="ml-auto flex items-center gap-2">
+            {saving ? (
+              <span className="text-xs text-muted-foreground">Salvando...</span>
+            ) : savedAt ? (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Check className="h-3 w-3 text-green-600" />
+                Salvo {savedAt.toLocaleTimeString('pt-BR')}
+              </span>
+            ) : null}
+            <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+              <Save className="h-4 w-4 mr-1" />Salvar
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
