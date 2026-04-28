@@ -186,6 +186,21 @@ export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
 
   return (
     <div className="space-y-4">
+      {ensaioId && (
+        <div className="flex items-center justify-end gap-2">
+          {saving ? (
+            <span className="text-xs text-muted-foreground">Salvando...</span>
+          ) : savedAt ? (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Check className="h-3 w-3 text-green-600" />
+              Salvo {savedAt.toLocaleTimeString('pt-BR')}
+            </span>
+          ) : null}
+          <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+            <Save className="h-4 w-4 mr-1" />Salvar
+          </Button>
+        </div>
+      )}
       {/* Volume Indicator */}
       <Card className={cn('border-2', statusColor[resultado.status])}>
         <CardContent className="py-4">
