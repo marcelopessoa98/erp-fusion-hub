@@ -162,7 +162,10 @@ export default function EnsaioTracos() {
         </TabsList>
 
         <TabsContent value="granulometria" className="mt-4">
-          <GranulometriaTab />
+          <GranulometriaTab
+            ensaioId={ensaio.id}
+            initialData={(ensaio.campos_especificos as any)?.granulometria}
+          />
         </TabsContent>
 
         <TabsContent value="massa_especifica" className="mt-4">
