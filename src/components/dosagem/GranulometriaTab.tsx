@@ -284,6 +284,23 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
             </Badge>
           )}
         </div>
+        {ensaioId && (
+          <div className="ml-auto flex items-center gap-2">
+            {saving ? (
+              <span className="text-xs text-muted-foreground">Salvando...</span>
+            ) : savedAt ? (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Check className="h-3 w-3 text-green-600" />
+                Salvo {savedAt.toLocaleTimeString('pt-BR')}
+              </span>
+            ) : null}
+            <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+              <Save className="h-4 w-4 mr-1" />Salvar
+            </Button>
+          </div>
+        )}
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
