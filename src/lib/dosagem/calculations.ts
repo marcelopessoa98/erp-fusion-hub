@@ -59,16 +59,24 @@ export function calcularModuloFinura(dados: DadosPeneira[]): number {
 }
 
 /**
- * Determina o Diâmetro Máximo
- * Abertura da peneira onde % retida acumulada < 5%
+ * Determina o Diâmetro Máximo Característico (NBR NM 248)
+ * É a abertura da MAIOR peneira (em ordem decrescente) cuja % retida acumulada é ≤ 5%.
  */
 export function calcularDiametroMaximo(dados: DadosPeneira[]): number {
-  for (const d of dados) {
-    if (d.retidaAcumulada >= 5) {
-      return d.abertura;
+  // Ordena da maior abertura para a menor
+  const ordenados = [...dados].sort((a, b) => b.abertura - a.abertura);
+  let dMax = 0;
+  for (const d of ordenados) {
+    if (d.retidaAcumulada <= 5) {
+      dMax = d.abertura;
+    } else if (dMax > 0) {
+      // Já encontramos pelo menos uma peneira válida e agora ultrapassou 5%
+      break;
     }
   }
-  return dados[dados.length - 1]?.abertura || 0;
+  // Fallback: nenhuma peneira ≤ 5% — retorna a menor abertura
+  if (dMax === 0) return ordenados[ordenados.length - 1]?.abertura || 0;
+  return dMax;
 }
 
 // ---- Dosagem ----
