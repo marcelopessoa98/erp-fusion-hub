@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,8 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { MATERIAIS_PADRAO } from '@/lib/dosagem/constants';
 import { calcularVolume, calcularDosagem, calcularBetonada, MaterialTraco, ResultadoDosagem } from '@/lib/dosagem/calculations';
-import { CheckCircle, AlertTriangle, XCircle, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Plus, Trash2, Save, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface MaterialRow {
   materialId: string;
@@ -19,18 +21,63 @@ interface MaterialRow {
   aditivoPercent: number;
 }
 
-export function DosagemTab() {
-  const [relacaoAC, setRelacaoAC] = useState(0.55);
-  const [slump, setSlump] = useState('100±20');
-  const [volumeBetoneira, setVolumeBetoneira] = useState(1.0);
-  const [nomeTraco, setNomeTraco] = useState('');
+interface DosagemTabProps {
+  ensaioId?: string;
+  initialData?: {
+    relacaoAC?: number;
+    slump?: string;
+    volumeBetoneira?: number;
+    nomeTraco?: string;
+    rows?: MaterialRow[];
+  };
+}
 
-  const [rows, setRows] = useState<MaterialRow[]>([
+export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
+  const { toast } = useToast();
+  const [relacaoAC, setRelacaoAC] = useState(initialData?.relacaoAC ?? 0.55);
+  const [slump, setSlump] = useState(initialData?.slump ?? '100±20');
+  const [volumeBetoneira, setVolumeBetoneira] = useState(initialData?.volumeBetoneira ?? 1.0);
+  const [nomeTraco, setNomeTraco] = useState(initialData?.nomeTraco ?? '');
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const isFirstRender = useRef(true);
+
+  const [rows, setRows] = useState<MaterialRow[]>(initialData?.rows && initialData.rows.length ? initialData.rows : [
     { materialId: 'cimento', massa: 400, umidade: 0, aditivoPercent: 0 },
     { materialId: 'areia_media', massa: 600, umidade: 2, aditivoPercent: 0 },
     { materialId: 'brita1', massa: 900, umidade: 0.5, aditivoPercent: 0 },
     { materialId: 'agua', massa: 220, umidade: 0, aditivoPercent: 0 },
   ]);
+
+  const persist = async () => {
+    if (!ensaioId) return;
+    setSaving(true);
+    try {
+      const { data: current, error: fetchErr } = await supabase
+        .from('ensaios').select('campos_especificos').eq('id', ensaioId).single();
+      if (fetchErr) throw fetchErr;
+      const campos = (current?.campos_especificos as any) || {};
+      const novosCampos = {
+        ...campos,
+        dosagem: { relacaoAC, slump, volumeBetoneira, nomeTraco, rows, updated_at: new Date().toISOString() },
+      };
+      const { error } = await supabase.from('ensaios').update({ campos_especificos: novosCampos }).eq('id', ensaioId);
+      if (error) throw error;
+      setSavedAt(new Date());
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar dosagem', description: e.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!ensaioId) return;
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    const t = setTimeout(() => { persist(); }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [relacaoAC, slump, volumeBetoneira, nomeTraco, rows, ensaioId]);
 
   const addRow = () => {
     setRows(prev => [...prev, { materialId: '', massa: 0, umidade: 0, aditivoPercent: 0 }]);
@@ -139,6 +186,21 @@ export function DosagemTab() {
 
   return (
     <div className="space-y-4">
+      {ensaioId && (
+        <div className="flex items-center justify-end gap-2">
+          {saving ? (
+            <span className="text-xs text-muted-foreground">Salvando...</span>
+          ) : savedAt ? (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Check className="h-3 w-3 text-green-600" />
+              Salvo {savedAt.toLocaleTimeString('pt-BR')}
+            </span>
+          ) : null}
+          <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+            <Save className="h-4 w-4 mr-1" />Salvar
+          </Button>
+        </div>
+      )}
       {/* Volume Indicator */}
       <Card className={cn('border-2', statusColor[resultado.status])}>
         <CardContent className="py-4">

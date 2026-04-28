@@ -1,27 +1,43 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Save, Check } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 type TipoAgregado = 'miudo' | 'graudo';
 
 interface Determinacao {
-  vr: number; // Volume do recipiente (dm³)
-  m1: number; // Massa do recipiente vazio (g)
-  m2: number; // Massa recipiente + agregado (g)
+  vr: number;
+  m1: number;
+  m2: number;
 }
 
-export function MassaUnitariaTab() {
-  const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>('miudo');
+interface MassaUnitariaTabProps {
+  ensaioId?: string;
+  initialData?: {
+    tipoAgregado?: TipoAgregado;
+    detA?: Determinacao;
+    detB?: Determinacao;
+    detC?: Determinacao;
+  };
+}
 
-  const [detA, setDetA] = useState<Determinacao>({ vr: 9960, m1: 5910, m2: 0 });
-  const [detB, setDetB] = useState<Determinacao>({ vr: 9960, m1: 5910, m2: 0 });
-  const [detC, setDetC] = useState<Determinacao>({ vr: 9960, m1: 5910, m2: 0 });
+export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProps = {}) {
+  const { toast } = useToast();
+  const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
+  const [detA, setDetA] = useState<Determinacao>(initialData?.detA || { vr: 9960, m1: 5910, m2: 0 });
+  const [detB, setDetB] = useState<Determinacao>(initialData?.detB || { vr: 9960, m1: 5910, m2: 0 });
+  const [detC, setDetC] = useState<Determinacao>(initialData?.detC || { vr: 9960, m1: 5910, m2: 0 });
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const isFirstRender = useRef(true);
 
-  // MU = (M2 - M1) / Vr
   const calcMU = (det: Determinacao) => {
     if (det.vr <= 0 || det.m2 <= 0) return 0;
     return (det.m2 - det.m1) / det.vr;
@@ -51,6 +67,36 @@ export function MassaUnitariaTab() {
     setter(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
   };
 
+  const persist = async () => {
+    if (!ensaioId) return;
+    setSaving(true);
+    try {
+      const { data: current, error: fetchErr } = await supabase
+        .from('ensaios').select('campos_especificos').eq('id', ensaioId).single();
+      if (fetchErr) throw fetchErr;
+      const campos = (current?.campos_especificos as any) || {};
+      const novosCampos = {
+        ...campos,
+        massaUnitaria: { tipoAgregado, detA, detB, detC, muA, muB, muC, media, updated_at: new Date().toISOString() },
+      };
+      const { error } = await supabase.from('ensaios').update({ campos_especificos: novosCampos }).eq('id', ensaioId);
+      if (error) throw error;
+      setSavedAt(new Date());
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar massa unitária', description: e.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!ensaioId) return;
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    const t = setTimeout(() => { persist(); }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoAgregado, detA, detB, detC, ensaioId]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-4 items-end">
@@ -69,6 +115,21 @@ export function MassaUnitariaTab() {
         <Badge variant="outline" className="h-9 flex items-center gap-1 text-sm px-4">
           Massa Unitária Média: <span className="font-bold font-mono">{media.toFixed(2)} kg/dm³</span>
         </Badge>
+        {ensaioId && (
+          <div className="ml-auto flex items-center gap-2">
+            {saving ? (
+              <span className="text-xs text-muted-foreground">Salvando...</span>
+            ) : savedAt ? (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Check className="h-3 w-3 text-green-600" />
+                Salvo {savedAt.toLocaleTimeString('pt-BR')}
+              </span>
+            ) : null}
+            <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+              <Save className="h-4 w-4 mr-1" />Salvar
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card>
@@ -91,13 +152,7 @@ export function MassaUnitariaTab() {
                   <TableCell className="font-medium py-2">Vr) Volume do recipiente (dm³)</TableCell>
                   {determinacoes.map(d => (
                     <TableCell key={d.label} className="py-2">
-                      <Input
-                        type="number"
-                        step="0.001"
-                        value={d.det.vr || ''}
-                        onChange={e => updateDet(d.set, 'vr', e.target.value)}
-                        className="h-10 text-sm text-center"
-                      />
+                      <Input type="number" step="0.001" value={d.det.vr || ''} onChange={e => updateDet(d.set, 'vr', e.target.value)} className="h-10 text-sm text-center" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -105,13 +160,7 @@ export function MassaUnitariaTab() {
                   <TableCell className="font-medium py-2">M1) Massa do recipiente vazio (g)</TableCell>
                   {determinacoes.map(d => (
                     <TableCell key={d.label} className="py-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={d.det.m1 || ''}
-                        onChange={e => updateDet(d.set, 'm1', e.target.value)}
-                        className="h-10 text-sm text-center"
-                      />
+                      <Input type="number" step="0.01" value={d.det.m1 || ''} onChange={e => updateDet(d.set, 'm1', e.target.value)} className="h-10 text-sm text-center" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -119,13 +168,7 @@ export function MassaUnitariaTab() {
                   <TableCell className="font-medium py-2">M2) Massa recipiente + agregado (g)</TableCell>
                   {determinacoes.map(d => (
                     <TableCell key={d.label} className="py-2">
-                      <Input
-                        type="number"
-                        step="0.001"
-                        value={d.det.m2 || ''}
-                        onChange={e => updateDet(d.set, 'm2', e.target.value)}
-                        className="h-10 text-sm text-center"
-                      />
+                      <Input type="number" step="0.001" value={d.det.m2 || ''} onChange={e => updateDet(d.set, 'm2', e.target.value)} className="h-10 text-sm text-center" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -143,7 +186,6 @@ export function MassaUnitariaTab() {
         </CardContent>
       </Card>
 
-      {/* Fórmula de referência */}
       <Card>
         <CardContent className="py-4">
           <p className="text-xs text-muted-foreground">

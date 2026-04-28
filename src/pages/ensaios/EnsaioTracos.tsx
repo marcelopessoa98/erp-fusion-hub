@@ -169,15 +169,24 @@ export default function EnsaioTracos() {
         </TabsContent>
 
         <TabsContent value="massa_especifica" className="mt-4">
-          <MassaEspecificaTab />
+          <MassaEspecificaTab
+            ensaioId={ensaio.id}
+            initialData={(ensaio.campos_especificos as any)?.massaEspecifica}
+          />
         </TabsContent>
 
         <TabsContent value="massa_unitaria" className="mt-4">
-          <MassaUnitariaTab />
+          <MassaUnitariaTab
+            ensaioId={ensaio.id}
+            initialData={(ensaio.campos_especificos as any)?.massaUnitaria}
+          />
         </TabsContent>
 
         <TabsContent value="dosagem" className="mt-4">
-          <DosagemTab />
+          <DosagemTab
+            ensaioId={ensaio.id}
+            initialData={(ensaio.campos_especificos as any)?.dosagem}
+          />
         </TabsContent>
       </Tabs>
 
