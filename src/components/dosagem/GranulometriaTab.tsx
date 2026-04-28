@@ -79,13 +79,32 @@ function ChartLegend({ tipoAgregado }: { tipoAgregado: TipoAgregado }) {
   );
 }
 
-export function GranulometriaTab() {
-  const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>('miudo');
+interface GranulometriaTabProps {
+  ensaioId?: string;
+  initialData?: {
+    tipoAgregado?: TipoAgregado;
+    massasA?: number[];
+    massasB?: number[];
+  };
+}
+
+export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProps = {}) {
+  const { toast } = useToast();
+  const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
 
   const peneiras = tipoAgregado === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
 
-  const [massasA, setMassasA] = useState<number[]>(() => peneiras.map(() => 0));
-  const [massasB, setMassasB] = useState<number[]>(() => peneiras.map(() => 0));
+  const [massasA, setMassasA] = useState<number[]>(() => {
+    if (initialData?.massasA && initialData.massasA.length === peneiras.length) return initialData.massasA;
+    return peneiras.map(() => 0);
+  });
+  const [massasB, setMassasB] = useState<number[]>(() => {
+    if (initialData?.massasB && initialData.massasB.length === peneiras.length) return initialData.massasB;
+    return peneiras.map(() => 0);
+  });
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const isFirstRender = useRef(true);
 
   const handleTipoChange = (tipo: TipoAgregado) => {
     const p = tipo === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
