@@ -35,6 +35,7 @@ interface DosagemTabProps {
 
 export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [relacaoAC, setRelacaoAC] = useState(initialData?.relacaoAC ?? 0.55);
   const [slump, setSlump] = useState(initialData?.slump ?? '100±20');
   const [volumeBetoneira, setVolumeBetoneira] = useState(initialData?.volumeBetoneira ?? 1.0);
@@ -42,6 +43,7 @@ export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.rows && initialData.rows.length));
 
   const [rows, setRows] = useState<MaterialRow[]>(initialData?.rows && initialData.rows.length ? initialData.rows : [
     { materialId: 'cimento', massa: 400, umidade: 0, aditivoPercent: 0 },
@@ -50,7 +52,7 @@ export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
     { materialId: 'agua', massa: 220, umidade: 0, aditivoPercent: 0 },
   ]);
 
-  const persist = async () => {
+  const persist = async (opts: { manual?: boolean } = {}) => {
     if (!ensaioId) return;
     setSaving(true);
     try {
@@ -58,6 +60,21 @@ export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
         .from('ensaios').select('campos_especificos').eq('id', ensaioId).single();
       if (fetchErr) throw fetchErr;
       const campos = (current?.campos_especificos as any) || {};
+      const existing = campos.dosagem as any;
+      // Consider "empty" if user hasn't edited from defaults at all (no nomeTraco AND no rows distinct from default)
+      const allMassasZero = rows.every(r => !r.massa);
+      const isEmpty = !nomeTraco && allMassasZero;
+      const existingHasData = existing && (existing.nomeTraco || (existing.rows?.some((r: any) => r.massa)));
+      if (isEmpty && existingHasData && !opts.manual) {
+        if (existing.relacaoAC != null) setRelacaoAC(existing.relacaoAC);
+        if (existing.slump) setSlump(existing.slump);
+        if (existing.volumeBetoneira != null) setVolumeBetoneira(existing.volumeBetoneira);
+        if (existing.nomeTraco) setNomeTraco(existing.nomeTraco);
+        if (existing.rows) setRows(existing.rows);
+        hydratedRef.current = true;
+        setSaving(false);
+        return;
+      }
       const novosCampos = {
         ...campos,
         dosagem: { relacaoAC, slump, volumeBetoneira, nomeTraco, rows, updated_at: new Date().toISOString() },
@@ -65,12 +82,27 @@ export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
       const { error } = await supabase.from('ensaios').update({ campos_especificos: novosCampos }).eq('id', ensaioId);
       if (error) throw error;
       setSavedAt(new Date());
+      hydratedRef.current = true;
+      queryClient.invalidateQueries({ queryKey: ['ensaios'] });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar dosagem', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  // Re-hydrate when initialData arrives later
+  useEffect(() => {
+    if (!initialData || hydratedRef.current) return;
+    if (!initialData.rows?.length) return;
+    if (initialData.relacaoAC != null) setRelacaoAC(initialData.relacaoAC);
+    if (initialData.slump) setSlump(initialData.slump);
+    if (initialData.volumeBetoneira != null) setVolumeBetoneira(initialData.volumeBetoneira);
+    if (initialData.nomeTraco) setNomeTraco(initialData.nomeTraco);
+    if (initialData.rows) setRows(initialData.rows);
+    hydratedRef.current = true;
+    isFirstRender.current = true;
+  }, [initialData]);
 
   useEffect(() => {
     if (!ensaioId) return;
