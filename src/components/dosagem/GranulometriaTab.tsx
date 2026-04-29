@@ -331,6 +331,11 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
               Classificação: {detectedZona}
             </Badge>
           )}
+          {tipoAgregado === 'miudo' && classificacaoAreia && (
+            <Badge className="h-9 flex items-center gap-1 text-sm px-3">
+              Tipo: {classificacaoAreia}
+            </Badge>
+          )}
         </div>
         {ensaioId && (
           <div className="ml-auto flex items-center gap-2">
