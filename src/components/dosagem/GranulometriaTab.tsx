@@ -91,6 +91,7 @@ interface GranulometriaTabProps {
 
 export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
 
   const peneiras = tipoAgregado === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
@@ -106,6 +107,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.massasA?.some(v => v > 0) || initialData?.massasB?.some(v => v > 0)));
 
   const handleTipoChange = (tipo: TipoAgregado) => {
     const p = tipo === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
