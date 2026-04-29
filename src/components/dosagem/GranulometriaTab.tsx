@@ -109,8 +109,11 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
   const isFirstRender = useRef(true);
   const hydratedRef = useRef(!!(initialData?.massasA?.some(v => v > 0) || initialData?.massasB?.some(v => v > 0)));
 
+  const tipoChangedByUserRef = useRef(false);
+
   const handleTipoChange = (tipo: TipoAgregado) => {
     const p = tipo === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
+    tipoChangedByUserRef.current = true;
     setTipoAgregado(tipo);
     setMassasA(p.map(() => 0));
     setMassasB(p.map(() => 0));
