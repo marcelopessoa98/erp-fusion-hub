@@ -70,7 +70,7 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
     setter(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
   };
 
-  const persist = async () => {
+  const persist = async (opts: { manual?: boolean } = {}) => {
     if (!ensaioId) return;
     setSaving(true);
     try {
@@ -78,6 +78,18 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
         .from('ensaios').select('campos_especificos').eq('id', ensaioId).single();
       if (fetchErr) throw fetchErr;
       const campos = (current?.campos_especificos as any) || {};
+      const existing = campos.massaUnitaria as any;
+      const isEmpty = !detA.m2 && !detB.m2 && !detC.m2;
+      const existingHasData = existing && (existing.detA?.m2 || existing.detB?.m2 || existing.detC?.m2);
+      if (isEmpty && existingHasData && !opts.manual) {
+        if (existing.tipoAgregado) setTipoAgregado(existing.tipoAgregado);
+        if (existing.detA) setDetA(existing.detA);
+        if (existing.detB) setDetB(existing.detB);
+        if (existing.detC) setDetC(existing.detC);
+        hydratedRef.current = true;
+        setSaving(false);
+        return;
+      }
       const novosCampos = {
         ...campos,
         massaUnitaria: { tipoAgregado, detA, detB, detC, muA, muB, muC, media, updated_at: new Date().toISOString() },
@@ -85,12 +97,27 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
       const { error } = await supabase.from('ensaios').update({ campos_especificos: novosCampos }).eq('id', ensaioId);
       if (error) throw error;
       setSavedAt(new Date());
+      hydratedRef.current = true;
+      queryClient.invalidateQueries({ queryKey: ['ensaios'] });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar massa unitária', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  // Re-hydrate when initialData arrives later
+  useEffect(() => {
+    if (!initialData || hydratedRef.current) return;
+    const hasData = initialData.detA?.m2 || initialData.detB?.m2 || initialData.detC?.m2;
+    if (!hasData) return;
+    if (initialData.tipoAgregado) setTipoAgregado(initialData.tipoAgregado);
+    if (initialData.detA) setDetA(initialData.detA);
+    if (initialData.detB) setDetB(initialData.detB);
+    if (initialData.detC) setDetC(initialData.detC);
+    hydratedRef.current = true;
+    isFirstRender.current = true;
+  }, [initialData]);
 
   useEffect(() => {
     if (!ensaioId) return;
