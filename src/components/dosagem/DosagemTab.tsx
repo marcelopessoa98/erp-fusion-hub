@@ -229,7 +229,7 @@ export function DosagemTab({ ensaioId, initialData }: DosagemTabProps = {}) {
               Salvo {savedAt.toLocaleTimeString('pt-BR')}
             </span>
           ) : null}
-          <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+          <Button size="sm" variant="outline" onClick={() => persist({ manual: true })} disabled={saving}>
             <Save className="h-4 w-4 mr-1" />Salvar
           </Button>
         </div>
