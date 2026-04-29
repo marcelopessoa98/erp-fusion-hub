@@ -386,6 +386,8 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
                           step="0.1"
                           value={massasA[i] || ''}
                           onChange={e => updateMassa(setMassasA, i, e.target.value)}
+                          onWheel={e => (e.target as HTMLInputElement).blur()}
+                          onKeyDown={e => { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault(); }}
                           className="h-9 text-sm text-center w-full"
                         />
                       </TableCell>
@@ -396,6 +398,8 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
                           step="0.1"
                           value={massasB[i] || ''}
                           onChange={e => updateMassa(setMassasB, i, e.target.value)}
+                          onWheel={e => (e.target as HTMLInputElement).blur()}
+                          onKeyDown={e => { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault(); }}
                           className="h-9 text-sm text-center w-full"
                         />
                       </TableCell>
