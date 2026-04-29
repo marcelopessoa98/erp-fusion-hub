@@ -127,6 +127,18 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
   const totalA = massasA.reduce((s, v) => s + v, 0);
   const totalB = massasB.reduce((s, v) => s + v, 0);
 
+  // Sand type classification by Módulo de Finura (NBR 7211)
+  const classificacaoAreia = useMemo(() => {
+    if (tipoAgregado !== 'miudo' || moduloFinura <= 0) return null;
+    if (moduloFinura < 1.55) return 'Fora de faixa (muito fino)';
+    if (moduloFinura <= 2.20) return 'Areia muito fina';
+    if (moduloFinura <= 2.40) return 'Areia fina (zona utilizável inferior)';
+    if (moduloFinura <= 2.90) return 'Areia média (zona ótima inferior)';
+    if (moduloFinura <= 3.40) return 'Areia média/grossa (zona ótima superior)';
+    if (moduloFinura <= 3.50) return 'Areia grossa (zona utilizável superior)';
+    return 'Fora de faixa (muito grossa)';
+  }, [tipoAgregado, moduloFinura]);
+
   const detectedZona = useMemo(() => {
     if (tipoAgregado !== 'graudo') return null;
     for (let zi = 0; zi < ZONAS_GRAUDO.length; zi++) {
