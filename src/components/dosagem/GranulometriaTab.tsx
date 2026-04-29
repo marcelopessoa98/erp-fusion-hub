@@ -228,7 +228,9 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
         existing && ((existing.massasA?.some((v: number) => v > 0)) || (existing.massasB?.some((v: number) => v > 0)));
 
       // Safety guard: never overwrite saved non-empty data with an all-zeros payload (auto-save only).
-      if (isEmpty && existingHasData && !opts.manual) {
+      // Exception: if the user just switched the aggregate type, allow the overwrite (intentional reset).
+      const userSwitchedTipo = tipoChangedByUserRef.current;
+      if (isEmpty && existingHasData && !opts.manual && !userSwitchedTipo) {
         // Re-hydrate local state from DB instead of overwriting it.
         if (existing.tipoAgregado) setTipoAgregado(existing.tipoAgregado);
         if (Array.isArray(existing.massasA)) setMassasA(existing.massasA);
@@ -237,6 +239,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
         setSaving(false);
         return;
       }
+      tipoChangedByUserRef.current = false;
 
       const novosCampos = {
         ...campos,
