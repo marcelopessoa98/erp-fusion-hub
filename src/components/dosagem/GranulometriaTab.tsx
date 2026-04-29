@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Save, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -90,6 +91,7 @@ interface GranulometriaTabProps {
 
 export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
 
   const peneiras = tipoAgregado === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
@@ -105,6 +107,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.massasA?.some(v => v > 0) || initialData?.massasB?.some(v => v > 0)));
 
   const handleTipoChange = (tipo: TipoAgregado) => {
     const p = tipo === 'miudo' ? PENEIRAS_MIUDO : PENEIRAS_GRAUDO;
@@ -123,6 +126,18 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
 
   const totalA = massasA.reduce((s, v) => s + v, 0);
   const totalB = massasB.reduce((s, v) => s + v, 0);
+
+  // Sand type classification by Módulo de Finura (NBR 7211)
+  const classificacaoAreia = useMemo(() => {
+    if (tipoAgregado !== 'miudo' || moduloFinura <= 0) return null;
+    if (moduloFinura < 1.55) return 'Fora de faixa (muito fino)';
+    if (moduloFinura <= 2.20) return 'Areia muito fina';
+    if (moduloFinura <= 2.40) return 'Areia fina (zona utilizável inferior)';
+    if (moduloFinura <= 2.90) return 'Areia média (zona ótima inferior)';
+    if (moduloFinura <= 3.40) return 'Areia média/grossa (zona ótima superior)';
+    if (moduloFinura <= 3.50) return 'Areia grossa (zona utilizável superior)';
+    return 'Fora de faixa (muito grossa)';
+  }, [tipoAgregado, moduloFinura]);
 
   const detectedZona = useMemo(() => {
     if (tipoAgregado !== 'graudo') return null;
@@ -192,7 +207,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
   };
 
   // Persist to ensaio.campos_especificos.granulometria
-  const persist = async () => {
+  const persist = async (opts: { manual?: boolean } = {}) => {
     if (!ensaioId) return;
     setSaving(true);
     try {
@@ -204,6 +219,22 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
       if (fetchErr) throw fetchErr;
 
       const campos = (current?.campos_especificos as any) || {};
+      const existing = campos.granulometria as any;
+      const isEmpty = totalA === 0 && totalB === 0;
+      const existingHasData =
+        existing && ((existing.massasA?.some((v: number) => v > 0)) || (existing.massasB?.some((v: number) => v > 0)));
+
+      // Safety guard: never overwrite saved non-empty data with an all-zeros payload (auto-save only).
+      if (isEmpty && existingHasData && !opts.manual) {
+        // Re-hydrate local state from DB instead of overwriting it.
+        if (existing.tipoAgregado) setTipoAgregado(existing.tipoAgregado);
+        if (Array.isArray(existing.massasA)) setMassasA(existing.massasA);
+        if (Array.isArray(existing.massasB)) setMassasB(existing.massasB);
+        hydratedRef.current = true;
+        setSaving(false);
+        return;
+      }
+
       const novosCampos = {
         ...campos,
         granulometria: {
@@ -212,6 +243,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
           massasB,
           moduloFinura,
           diametroMaximo,
+          classificacaoAreia,
           updated_at: new Date().toISOString(),
         },
       };
@@ -221,12 +253,28 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
         .eq('id', ensaioId);
       if (error) throw error;
       setSavedAt(new Date());
+      hydratedRef.current = true;
+      // Refresh React Query cache so other tabs/remounts see fresh data
+      queryClient.invalidateQueries({ queryKey: ['ensaios'] });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar granulometria', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  // Re-hydrate state when initialData arrives later (e.g. parent finishes loading after mount)
+  useEffect(() => {
+    if (!initialData) return;
+    if (hydratedRef.current) return;
+    const hasData = initialData.massasA?.some(v => v > 0) || initialData.massasB?.some(v => v > 0);
+    if (!hasData) return;
+    if (initialData.tipoAgregado) setTipoAgregado(initialData.tipoAgregado);
+    if (initialData.massasA) setMassasA(initialData.massasA);
+    if (initialData.massasB) setMassasB(initialData.massasB);
+    hydratedRef.current = true;
+    isFirstRender.current = true; // skip the autosave triggered by hydration
+  }, [initialData]);
 
   // Auto-save (debounced)
   useEffect(() => {
@@ -283,6 +331,11 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
               Classificação: {detectedZona}
             </Badge>
           )}
+          {tipoAgregado === 'miudo' && classificacaoAreia && (
+            <Badge className="h-9 flex items-center gap-1 text-sm px-3">
+              Tipo: {classificacaoAreia}
+            </Badge>
+          )}
         </div>
         {ensaioId && (
           <div className="ml-auto flex items-center gap-2">
@@ -294,7 +347,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
                 Salvo {savedAt.toLocaleTimeString('pt-BR')}
               </span>
             ) : null}
-            <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+            <Button size="sm" variant="outline" onClick={() => persist({ manual: true })} disabled={saving}>
               <Save className="h-4 w-4 mr-1" />Salvar
             </Button>
           </div>

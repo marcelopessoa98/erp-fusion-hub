@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 type TipoAgregado = 'miudo' | 'graudo';
 
@@ -30,6 +31,7 @@ interface MassaUnitariaTabProps {
 
 export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
   const [detA, setDetA] = useState<Determinacao>(initialData?.detA || { vr: 9960, m1: 5910, m2: 0 });
   const [detB, setDetB] = useState<Determinacao>(initialData?.detB || { vr: 9960, m1: 5910, m2: 0 });
@@ -37,6 +39,7 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.detA?.m2 || initialData?.detB?.m2 || initialData?.detC?.m2));
 
   const calcMU = (det: Determinacao) => {
     if (det.vr <= 0 || det.m2 <= 0) return 0;
@@ -67,7 +70,7 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
     setter(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
   };
 
-  const persist = async () => {
+  const persist = async (opts: { manual?: boolean } = {}) => {
     if (!ensaioId) return;
     setSaving(true);
     try {
@@ -75,6 +78,18 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
         .from('ensaios').select('campos_especificos').eq('id', ensaioId).single();
       if (fetchErr) throw fetchErr;
       const campos = (current?.campos_especificos as any) || {};
+      const existing = campos.massaUnitaria as any;
+      const isEmpty = !detA.m2 && !detB.m2 && !detC.m2;
+      const existingHasData = existing && (existing.detA?.m2 || existing.detB?.m2 || existing.detC?.m2);
+      if (isEmpty && existingHasData && !opts.manual) {
+        if (existing.tipoAgregado) setTipoAgregado(existing.tipoAgregado);
+        if (existing.detA) setDetA(existing.detA);
+        if (existing.detB) setDetB(existing.detB);
+        if (existing.detC) setDetC(existing.detC);
+        hydratedRef.current = true;
+        setSaving(false);
+        return;
+      }
       const novosCampos = {
         ...campos,
         massaUnitaria: { tipoAgregado, detA, detB, detC, muA, muB, muC, media, updated_at: new Date().toISOString() },
@@ -82,12 +97,27 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
       const { error } = await supabase.from('ensaios').update({ campos_especificos: novosCampos }).eq('id', ensaioId);
       if (error) throw error;
       setSavedAt(new Date());
+      hydratedRef.current = true;
+      queryClient.invalidateQueries({ queryKey: ['ensaios'] });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar massa unitária', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  // Re-hydrate when initialData arrives later
+  useEffect(() => {
+    if (!initialData || hydratedRef.current) return;
+    const hasData = initialData.detA?.m2 || initialData.detB?.m2 || initialData.detC?.m2;
+    if (!hasData) return;
+    if (initialData.tipoAgregado) setTipoAgregado(initialData.tipoAgregado);
+    if (initialData.detA) setDetA(initialData.detA);
+    if (initialData.detB) setDetB(initialData.detB);
+    if (initialData.detC) setDetC(initialData.detC);
+    hydratedRef.current = true;
+    isFirstRender.current = true;
+  }, [initialData]);
 
   useEffect(() => {
     if (!ensaioId) return;
@@ -125,7 +155,7 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
                 Salvo {savedAt.toLocaleTimeString('pt-BR')}
               </span>
             ) : null}
-            <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+            <Button size="sm" variant="outline" onClick={() => persist({ manual: true })} disabled={saving}>
               <Save className="h-4 w-4 mr-1" />Salvar
             </Button>
           </div>

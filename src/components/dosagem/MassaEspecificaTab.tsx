@@ -8,6 +8,7 @@ import { Save, Check } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 type TipoAgregado = 'miudo' | 'graudo';
 
@@ -28,12 +29,14 @@ interface MassaEspecificaTabProps {
 
 export function MassaEspecificaTab({ ensaioId, initialData }: MassaEspecificaTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
   const [ensaioA, setEnsaioA] = useState<EnsaioChapman>(initialData?.ensaioA || { ms: 500, va: 200, lf: 0 });
   const [ensaioB, setEnsaioB] = useState<EnsaioChapman>(initialData?.ensaioB || { ms: 500, va: 200, lf: 0 });
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.ensaioA?.lf || initialData?.ensaioB?.lf));
 
   const densidadeA = useMemo(() => {
     const denom = ensaioA.lf - ensaioA.va;
@@ -61,7 +64,7 @@ export function MassaEspecificaTab({ ensaioId, initialData }: MassaEspecificaTab
     setter(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
   };
 
-  const persist = async () => {
+  const persist = async (opts: { manual?: boolean } = {}) => {
     if (!ensaioId) return;
     setSaving(true);
     try {
@@ -69,6 +72,17 @@ export function MassaEspecificaTab({ ensaioId, initialData }: MassaEspecificaTab
         .from('ensaios').select('campos_especificos').eq('id', ensaioId).single();
       if (fetchErr) throw fetchErr;
       const campos = (current?.campos_especificos as any) || {};
+      const existing = campos.massaEspecifica as any;
+      const isEmpty = !ensaioA.lf && !ensaioB.lf;
+      const existingHasData = existing && (existing.ensaioA?.lf || existing.ensaioB?.lf);
+      if (isEmpty && existingHasData && !opts.manual) {
+        if (existing.tipoAgregado) setTipoAgregado(existing.tipoAgregado);
+        if (existing.ensaioA) setEnsaioA(existing.ensaioA);
+        if (existing.ensaioB) setEnsaioB(existing.ensaioB);
+        hydratedRef.current = true;
+        setSaving(false);
+        return;
+      }
       const novosCampos = {
         ...campos,
         massaEspecifica: { tipoAgregado, ensaioA, ensaioB, densidadeA, densidadeB, media, updated_at: new Date().toISOString() },
@@ -76,12 +90,26 @@ export function MassaEspecificaTab({ ensaioId, initialData }: MassaEspecificaTab
       const { error } = await supabase.from('ensaios').update({ campos_especificos: novosCampos }).eq('id', ensaioId);
       if (error) throw error;
       setSavedAt(new Date());
+      hydratedRef.current = true;
+      queryClient.invalidateQueries({ queryKey: ['ensaios'] });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar massa específica', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  // Re-hydrate when initialData arrives later
+  useEffect(() => {
+    if (!initialData || hydratedRef.current) return;
+    const hasData = initialData.ensaioA?.lf || initialData.ensaioB?.lf;
+    if (!hasData) return;
+    if (initialData.tipoAgregado) setTipoAgregado(initialData.tipoAgregado);
+    if (initialData.ensaioA) setEnsaioA(initialData.ensaioA);
+    if (initialData.ensaioB) setEnsaioB(initialData.ensaioB);
+    hydratedRef.current = true;
+    isFirstRender.current = true;
+  }, [initialData]);
 
   useEffect(() => {
     if (!ensaioId) return;
@@ -119,7 +147,7 @@ export function MassaEspecificaTab({ ensaioId, initialData }: MassaEspecificaTab
                 Salvo {savedAt.toLocaleTimeString('pt-BR')}
               </span>
             ) : null}
-            <Button size="sm" variant="outline" onClick={persist} disabled={saving}>
+            <Button size="sm" variant="outline" onClick={() => persist({ manual: true })} disabled={saving}>
               <Save className="h-4 w-4 mr-1" />Salvar
             </Button>
           </div>
