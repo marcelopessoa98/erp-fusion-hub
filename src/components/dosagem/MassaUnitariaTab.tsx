@@ -31,6 +31,7 @@ interface MassaUnitariaTabProps {
 
 export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
   const [detA, setDetA] = useState<Determinacao>(initialData?.detA || { vr: 9960, m1: 5910, m2: 0 });
   const [detB, setDetB] = useState<Determinacao>(initialData?.detB || { vr: 9960, m1: 5910, m2: 0 });
@@ -38,6 +39,7 @@ export function MassaUnitariaTab({ ensaioId, initialData }: MassaUnitariaTabProp
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.detA?.m2 || initialData?.detB?.m2 || initialData?.detC?.m2));
 
   const calcMU = (det: Determinacao) => {
     if (det.vr <= 0 || det.m2 <= 0) return 0;
