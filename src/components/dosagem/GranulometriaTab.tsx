@@ -207,7 +207,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
   };
 
   // Persist to ensaio.campos_especificos.granulometria
-  const persist = async () => {
+  const persist = async (opts: { manual?: boolean } = {}) => {
     if (!ensaioId) return;
     setSaving(true);
     try {
@@ -219,6 +219,22 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
       if (fetchErr) throw fetchErr;
 
       const campos = (current?.campos_especificos as any) || {};
+      const existing = campos.granulometria as any;
+      const isEmpty = totalA === 0 && totalB === 0;
+      const existingHasData =
+        existing && ((existing.massasA?.some((v: number) => v > 0)) || (existing.massasB?.some((v: number) => v > 0)));
+
+      // Safety guard: never overwrite saved non-empty data with an all-zeros payload (auto-save only).
+      if (isEmpty && existingHasData && !opts.manual) {
+        // Re-hydrate local state from DB instead of overwriting it.
+        if (existing.tipoAgregado) setTipoAgregado(existing.tipoAgregado);
+        if (Array.isArray(existing.massasA)) setMassasA(existing.massasA);
+        if (Array.isArray(existing.massasB)) setMassasB(existing.massasB);
+        hydratedRef.current = true;
+        setSaving(false);
+        return;
+      }
+
       const novosCampos = {
         ...campos,
         granulometria: {
@@ -227,6 +243,7 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
           massasB,
           moduloFinura,
           diametroMaximo,
+          classificacaoAreia,
           updated_at: new Date().toISOString(),
         },
       };
@@ -236,12 +253,28 @@ export function GranulometriaTab({ ensaioId, initialData }: GranulometriaTabProp
         .eq('id', ensaioId);
       if (error) throw error;
       setSavedAt(new Date());
+      hydratedRef.current = true;
+      // Refresh React Query cache so other tabs/remounts see fresh data
+      queryClient.invalidateQueries({ queryKey: ['ensaios'] });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar granulometria', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  // Re-hydrate state when initialData arrives later (e.g. parent finishes loading after mount)
+  useEffect(() => {
+    if (!initialData) return;
+    if (hydratedRef.current) return;
+    const hasData = initialData.massasA?.some(v => v > 0) || initialData.massasB?.some(v => v > 0);
+    if (!hasData) return;
+    if (initialData.tipoAgregado) setTipoAgregado(initialData.tipoAgregado);
+    if (initialData.massasA) setMassasA(initialData.massasA);
+    if (initialData.massasB) setMassasB(initialData.massasB);
+    hydratedRef.current = true;
+    isFirstRender.current = true; // skip the autosave triggered by hydration
+  }, [initialData]);
 
   // Auto-save (debounced)
   useEffect(() => {
