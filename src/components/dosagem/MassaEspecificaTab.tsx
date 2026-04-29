@@ -29,12 +29,14 @@ interface MassaEspecificaTabProps {
 
 export function MassaEspecificaTab({ ensaioId, initialData }: MassaEspecificaTabProps = {}) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tipoAgregado, setTipoAgregado] = useState<TipoAgregado>(initialData?.tipoAgregado || 'miudo');
   const [ensaioA, setEnsaioA] = useState<EnsaioChapman>(initialData?.ensaioA || { ms: 500, va: 200, lf: 0 });
   const [ensaioB, setEnsaioB] = useState<EnsaioChapman>(initialData?.ensaioB || { ms: 500, va: 200, lf: 0 });
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const isFirstRender = useRef(true);
+  const hydratedRef = useRef(!!(initialData?.ensaioA?.lf || initialData?.ensaioB?.lf));
 
   const densidadeA = useMemo(() => {
     const denom = ensaioA.lf - ensaioA.va;
