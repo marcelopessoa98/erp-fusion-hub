@@ -13,6 +13,7 @@ import { CheckCircle, AlertTriangle, XCircle, Plus, Trash2, Save, Check } from '
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MaterialRow {
   materialId: string;
